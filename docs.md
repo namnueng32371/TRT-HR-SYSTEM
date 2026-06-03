@@ -19,6 +19,4 @@
 1. composer create-project laravel/laravel trt-hr //สร้างโปรเจค
 2. composer require laravel/breeze --dev //ช่วยสร้างระบบ login/register
 3. php artisan breeze:install react // ติดตั้ง View เป็น React โดย Vite
-4. npm install ดาวน์โหลดไฟล์สำคัญๆ 
-
-
+4. npm install ดาวน์โหลดไฟล์สำคัญๆ
