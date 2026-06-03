@@ -1,6 +1,7 @@
 import { Head, Link } from "@inertiajs/react";
+import "../../css/global.css";
 
-export default function Welcome({ auth, laravelVersion, phpVersion }) {
+export default function Welcome({ auth }) {
     const handleImageError = () => {
         document
             .getElementById("screenshot-container")
@@ -14,7 +15,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
 
     return (
         <>
-            <Head title="Welcome" />
+            {/* <Head title="Welcome" /> */}
             <div className="bg-gray-50 text-black/50 dark:bg-black dark:text-white/50">
                 <img
                     id="background"
@@ -24,7 +25,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                 <div className="relative flex h-screen flex-col items-center justify-center text-black border border-red-800">
                     <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md border">
                         {/* Title */}
-                        <h1 className="text-center text-xl font-bold mb-6">
+                        <h1 className="text-center text-2xl font-bold mb-6">
                             ระบบรวมศูนย์ข้อมูลพนักงาน
                         </h1>
 
@@ -53,16 +54,30 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                         </div>
 
                         {/* Button */}
-                        <button className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition">
-                            เข้าสู่ระบบ
+                        <button className="w-full h-[50px] bg-[#B3702A] text-center text-[#FFFFFF] font-light tracking-normal tracking-[0.03em] rounded-md">
+                            {auth.user ? (
+                                <Link href={route("dashboard")} className="...">
+                                    เข้าสู่ระบบ (ไป Dashboard)
+                                </Link>
+                            ) : (
+                                <Link href={route("login")} className="...">
+                                    เข้าสู่ระบบ
+                                </Link>
+                            )}
                         </button>
 
                         {/* Footer Text */}
-                        <p className="text-center text-sm text-gray-500 mt-4">
-                            ยังไม่มีบัญชี? ติดต่อเจ้าหน้าที่ฝ่ายบุคคล
+                        <p className="text-left text-sm text-gray-500 mt-4">
+                            ยังไม่มีบัญชี?
+                            <Link
+                                href={route("register")}
+                                className="text-[black] pl-2 underline"
+                            >
+                                ติดต่อเจ้าหน้าที่ฝ่ายบุคคล
+                            </Link>
                         </p>
                     </div>
-                    <header className="py-10">
+                    {/* <header className="py-10">
                         <nav className="flex flex-1 justify-center border border">
                             {auth.user ? (
                                 <Link
@@ -88,7 +103,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                 </>
                             )}
                         </nav>
-                    </header>
+                    </header> */}
                 </div>
             </div>
         </>

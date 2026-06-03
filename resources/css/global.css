@@ -1,0 +1,7 @@
+/* resources/css/global.css */
+
+body {
+    background-color: #f9fafb; /* กำหนดสีพื้นหลังทั้งเว็บ (ตัวอย่าง) */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}

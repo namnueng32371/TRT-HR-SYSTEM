@@ -14,7 +14,9 @@ class Employee extends Model
         'employee_code', 'prefix', 'first_name_th', 'last_name_th',
         'first_name_en', 'last_name_en', 'nickname', 'position',
         'phone', 'email', 'birth_date', 'blood_group',
-        'hired_date', 'ssn', 'ssn_hospital', 'profile_image'
+        'medical_condition',  // ← เพิ่ม
+        'hired_date', 'profile_image'
+        // ลบ ssn, ssn_hospital ออก
     ];
 
     //เป็นการบอกว่า

@@ -1,0 +1,1000 @@
+import { Link, useForm } from "@inertiajs/react";
+import { useState } from "react";
+import TRTLogo from "../../../../public/images/logo.png";
+import close from "../../../../public/images/icon/close.png";
+
+const AvatarDefault = () => (
+    <svg
+        viewBox="0 0 80 80"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-full h-full"
+    >
+        {/* พื้นหลังวงกลม สีเทา */}
+        <circle cx="40" cy="40" r="40" fill="#D1D5DB" />
+
+        {/* หัว โล้น ไม่มีผม */}
+        <circle cx="40" cy="30" r="13" fill="#9CA3AF" />
+
+        {/* ลำตัว */}
+        <ellipse cx="40" cy="65" rx="22" ry="16" fill="#9CA3AF" />
+        <rect x="28" y="42" width="24" height="20" rx="4" fill="#9CA3AF" />
+        <rect x="30" y="38" width="20" height="8" rx="3" fill="#9CA3AF" />
+    </svg>
+);
+
+const AvatarMale = () => (
+    <svg
+        viewBox="0 0 80 80"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-full h-full"
+    >
+        <circle cx="40" cy="40" r="40" fill="#5B8FA8" />
+        <circle cx="40" cy="30" r="13" fill="#D4A574" />
+        <ellipse cx="40" cy="65" rx="22" ry="16" fill="#2C3E50" />
+        <rect x="28" y="42" width="24" height="20" rx="4" fill="#34495E" />
+        <rect x="30" y="38" width="20" height="8" rx="3" fill="#D4A574" />
+    </svg>
+);
+
+const AvatarFemale = () => (
+    <svg
+        viewBox="0 0 80 80"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-full h-full"
+    >
+        <circle cx="40" cy="40" r="40" fill="#7B9EA6" />
+        <circle cx="40" cy="30" r="13" fill="#D4A574" />
+        <ellipse cx="40" cy="65" rx="22" ry="16" fill="#8E5572" />
+        <rect x="28" y="42" width="24" height="20" rx="4" fill="#9B6B8A" />
+        <rect x="30" y="38" width="20" height="8" rx="3" fill="#D4A574" />
+        <path
+            d="M27 22 Q40 10 53 22"
+            stroke="#4A3728"
+            strokeWidth="3"
+            fill="none"
+        />
+    </svg>
+);
+
+//หัวตารางของแต่ละ ตารางเช่น ข้อมูลทั่วไป
+const SectionHeader = ({ title }) => (
+    <div
+        className="px-5 py-3 rounded-t-xl"
+        style={{ backgroundColor: "#75523B" }}
+    >
+        <h3 className="text-white font-medium text-[16px]">{title}</h3>
+    </div>
+);
+
+//text แสดงเมื่อ
+const ErrorText = ({ error }) => {
+    if (!error) return null;
+    return (
+        <p className="text-red-500 text-xs absolute -bottom-5 left-0 whitespace-nowrap">
+            {error}
+        </p>
+    );
+};
+
+// ✅ 3. input ที่ให้ใส่ข้อมูลพนักงาน โดยปรับมาให้มี drop down และ ระบบ validation สำหรับกัน error
+const Field = ({
+    label,
+    value,
+    onChange,
+    type = "text",
+    options = null,
+    error = null,
+}) => (
+    <div className="flex items-center gap-2 w-full">
+        <span className="text-[14px] xl:text-[16px] text-gray-600 whitespace-nowrap">
+            {label}
+        </span>
+
+        <div className="relative flex-1">
+            {/* แก้ไข: ลบเงื่อนไข wide และ style ที่เป็น inline ทิ้ง */}
+            {options ? (
+                <select
+                    value={value}
+                    onChange={onChange}
+                    className={`w-full text-[14px] xl:text-[16px] border rounded px-2 py-1 text-gray-800 bg-white focus:outline-none focus:ring-1 transition-all ${
+                        error
+                            ? "border-red-500 focus:ring-red-500"
+                            : "border-gray-300 focus:ring-[#B3702A]"
+                    }`}
+                >
+                    <option value="">- เลือก -</option>
+                    {options.map((opt) => (
+                        <option key={opt} value={opt}>
+                            {opt}
+                        </option>
+                    ))}
+                </select>
+            ) : (
+                <input
+                    type={type}
+                    value={value}
+                    onChange={onChange}
+                    className={`w-full border border-gray-300 rounded px-2 py-1 text-[14px] xl:text-[16px] text-gray-800 bg-white transition-all ${
+                        error
+                            ? "border-red-500 focus:ring-[#707070]"
+                            : "focus:ring-[#707070]"
+                    }`}
+                />
+            )}
+            <ErrorText error={error} className={`text-red-500`} />
+        </div>
+    </div>
+);
+
+export default function Create() {
+    const [localErrors, setLocalErrors] = useState({});
+    const [showConfirm, setShowConfirm] = useState(false);
+    // ใช้ useForm ซึ่งเป็น ปลั๊กอินของ Intertia โดยจะส่งข้อมูลไฟเป็น JSON ให้ที่ route
+    // data ตัวแปรเก็บข้อมูล , ส่วน setData post processing เป็นฟังก์ชัน โดยเป็น class ที่ Intertia กำหนดไว้
+    const { data, setData, post, processing, clearErrors } = useForm({
+        employee: {
+            employee_code: "",
+            prefix: "",
+            first_name_th: "",
+            last_name_th: "",
+            first_name_en: "",
+            last_name_en: "",
+            nickname: "",
+            position: "",
+            phone: "",
+            email: "",
+            birth_date: "",
+            blood_group: "",
+            medical_condition: "",
+            hired_date: "",
+        },
+        identity: {
+            id_card_number: "",
+            passport_number: "",
+            pink_card_number: "",
+            work_permit_number: "",
+            ssn: "",
+            ssn_hospital: "",
+        },
+        address: {
+            house_no: "",
+            moo: "",
+            village_name: "",
+            soi: "",
+            road: "",
+            sub_district: "",
+            district: "",
+            province: "",
+            zipcode: "",
+        },
+        emergency: {
+            name: "",
+            relationship: "",
+            phone: "",
+            full_address: "",
+        },
+        documents: {
+            id_card_path: null, // สำเนาบัตรประชาชน
+            house_reg_path: null, // สำเนาทะเบียนบ้าน
+            contract_path: null, // สัญญาจ้างงาน
+            bank_book_path: null, // bank_book_path
+            transcript_path: null, // transcript_path
+            application_form_path: null, // application_form_path
+            other_docs_path: null, // other_docs_path
+        },
+    });
+    const [prefix, setPrefix] = useState("");
+    const documentFields = [
+        { label: "สำเนาบัตรประชาชน", key: "id_card_path" },
+        { label: "สำเนาทะเบียนบ้าน", key: "house_reg_path" },
+        { label: "สัญญาจ้างงาน", key: "contract_path" },
+        { label: "หน้าบัญชี", key: "bank_book_path" },
+        { label: "วุฒิการศึกษา", key: "transcript_path" },
+        { label: "ชุดสมัคร", key: "application_form_path" },
+        { label: "เอกสารอื่นๆ", key: "other_docs_path" },
+    ];
+
+    const thaiRegex = /^[ก-๙\s]*$/; // ยอมรับเฉพาะ ก-ฮ และช่องว่าง
+    const engRegex = /^[A-Za-z\s]*$/; // ยอมรับเฉพาะ A-Z, a-z และช่องว่าง
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // สูตรตรวจจับอีเมลที่มี @ และ .
+    const numberRegex = /^[0-9]*$/; // ยอมรับเฉพาะตัวเลข 0-9
+
+    const updateData = (category, field, value) => {
+        let errorMsg = null;
+
+        // ตรวจสอบเงื่อนไขตามช่องที่กำลังพิมพ์
+        if (
+            ["first_name_th", "last_name_th", "nickname"].includes(field) &&
+            value !== "" // เช็คว่าค่าในช่อง field โดยใช้ method includes เช็คว่าเป็น T or F
+        ) {
+            if (!thaiRegex.test(value)) errorMsg = "กรุณากรอกภาษาไทยเท่านั้น";
+        } else if (
+            ["first_name_en", "last_name_en"].includes(field) &&
+            value !== ""
+        ) {
+            if (!engRegex.test(value)) errorMsg = "กรุณากรอกภาษาอังกฤษเท่านั้น";
+        } else if (field === "email" && value !== "") {
+            if (!emailRegex.test(value)) errorMsg = "รูปแบบอีเมลไม่ถูกต้อง";
+        } else if (field === "id_card_number" && value !== "") {
+            if (!numberRegex.test(value)) errorMsg = "กรุณากรอกตัวเลขเท่านั้น";
+            else if (value.length !== 13)
+                errorMsg = "เลขบัตรประชาชนต้องมี 13 หลัก";
+        }
+
+        // Fuctional Update state เปลี่ยนค่าได้แบบทันที
+        setLocalErrors((prev) => ({
+            ...prev,
+            [`${category}.${field}`]: errorMsg,
+        }));
+
+        // อัปเดตข้อมูลลง State (ถ้าช่องนั้นมี Error เราจะไม่ยอมให้พิมพ์ลงไป หรือจะยอมให้พิมพ์แต่ขึ้นแดงเตือนก็ได้ ในที่นี้ผมให้พิมพ์ได้แต่ขึ้นเตือนครับ)
+        setData(category, { ...data[category], [field]: value });
+    };
+
+    // ✅ 3. ฟังก์ชันตอนกดส่งฟอร์ม
+    const handleInitialSubmit = (e) => {
+        e.preventDefault();
+
+        // เช็คว่ามี Error แดงๆ ค้างอยู่ไหม ถ้ามีไม่ยอมให้ส่ง
+        const hasErrors = Object.values(localErrors).some(
+            (err) => err !== null,
+        );
+        // ถ้ามี
+        if (hasErrors) {
+            alert("กรุณาแก้ไขข้อมูลที่ผิดพลาด (สีแดง) ให้ถูกต้องก่อนบันทึก");
+            return;
+        }
+
+        setShowConfirm(true); // เปิด Popup ยืนยัน
+    };
+
+    // ✅ 8. ส่งข้อมูลจริง (หลังจากกดยืนยันใน Popup)
+    const confirmAndSubmit = () => {
+        setShowConfirm(false);
+        post(route("employee.store"));
+    };
+
+    const calculateAge = (birthDate) => {
+        if (!birthDate) return "";
+        const today = new Date();
+        const birth = new Date(birthDate);
+
+        if (birth > today) return "0 ปี 0 เดือน";
+
+        let years = today.getFullYear() - birth.getFullYear();
+        let months = today.getMonth() - birth.getMonth();
+
+        if (months < 0 || (months === 0 && today.getDate() < birth.getDate())) {
+            years--;
+            months += 12;
+        }
+
+        // กันค่าติดลบในกรณีคำนวณผิดพลาดทางตรรกะ
+        if (years < 0) years = 0;
+        if (months < 0) months = 0;
+
+        return `${years} ปี ${months} เดือน`;
+    };
+
+    const calculateTenure = (hiredDate) => {
+        if (!hiredDate) return "-";
+
+        const start = new Date(hiredDate);
+        const now = new Date();
+
+        let years = now.getFullYear() - start.getFullYear();
+        let months = now.getMonth() - start.getMonth();
+        let days = now.getDate() - start.getDate();
+
+        if (days < 0) {
+            months--;
+            days += new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+        }
+        if (months < 0) {
+            years--;
+            months += 12;
+        }
+
+        return `${years} ปี ${months} เดือน`;
+    };
+
+    return (
+        <div className="flex h-screen overflow-hidden bg-gray-50">
+            {/* Sidebar (เหมือนเดิมเป๊ะ) */}
+            <aside className="w-52 flex flex-col flex-shrink-0 bg-white border-r border-gray-200 shadow-sm">
+                <div className="flex items-center justify-center py-6 px-4 border-b border-gray-100">
+                    <img src={TRTLogo} alt="TRT Logo" className="w-32" />
+                </div>
+                <nav className="flex-1 py-4 px-3">
+                    <Link
+                        href={route("dashboard")}
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg mb-1 font-medium text-gray-600 hover:bg-amber-50 transition-all duration-200"
+                    >
+                        <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                            />
+                        </svg>
+                        หน้าหลัก
+                    </Link>
+                    <a
+                        href="#"
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg mb-1 font-medium text-white transition-all duration-200"
+                        style={{ backgroundColor: "#B3702A" }}
+                    >
+                        <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
+                        </svg>
+                        สร้างข้อมูล
+                    </a>
+                </nav>
+            </aside>
+
+            {/* Main */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+                <header
+                    className="h-16 flex-shrink-0"
+                    style={{ backgroundColor: "#75523B" }}
+                />
+
+                <main className="flex-1 overflow-auto p-6">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-5">
+                        สร้างข้อมูล
+                    </h2>
+
+                    <div className="flex justify-center mb-6">
+                        <div className="w-28 h-28 rounded-lg overflow-hidden border-2 border-gray-200 shadow-sm">
+                            {prefix === "นาย" ? (
+                                <AvatarMale />
+                            ) : prefix === "นาง" || prefix === "นางสาว" ? (
+                                <AvatarFemale />
+                            ) : (
+                                <AvatarDefault />
+                            )}
+                        </div>
+                    </div>
+
+                    {/* ✅ คลุมข้อมูลทั้งหมดด้วย <form> */}
+                    <form onSubmit={handleInitialSubmit} className="space-y-5">
+                        {/* ข้อมูลทั่วไป */}
+                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                            <SectionHeader title="ข้อมูลทั่วไป" />
+                            <div className="p-5">
+                                {/* Grid 3 คอลัมน์ */}
+                                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-7">
+                                    {/* แถว 1 */}
+                                    <Field
+                                        label="คำนำหน้า"
+                                        required
+                                        value={data.employee.prefix}
+                                        options={["นาย", "นาง", "นางสาว"]}
+                                        onChange={(e) => {
+                                            updateData(
+                                                "employee",
+                                                "prefix",
+                                                e.target.value,
+                                            );
+                                            setPrefix(e.target.value);
+                                        }}
+                                    />
+                                    <Field
+                                        label="ชื่อภาษาไทย"
+                                        required
+                                        value={data.employee.first_name_th}
+                                        error={
+                                            localErrors[
+                                                "employee.first_name_th"
+                                            ]
+                                        }
+                                        onChange={(e) =>
+                                            updateData(
+                                                "employee",
+                                                "first_name_th",
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+                                    <Field
+                                        label="นามสกุลภาษาไทย"
+                                        required
+                                        value={data.employee.last_name_th}
+                                        error={
+                                            localErrors["employee.last_name_th"]
+                                        }
+                                        onChange={(e) =>
+                                            updateData(
+                                                "employee",
+                                                "last_name_th",
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+
+                                    {/* แถว 2 */}
+                                    <Field
+                                        label="ชื่อเล่น"
+                                        value={data.employee.nickname}
+                                        error={localErrors["employee.nickname"]}
+                                        onChange={(e) =>
+                                            updateData(
+                                                "employee",
+                                                "nickname",
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+                                    <Field
+                                        label="First Name"
+                                        required
+                                        value={data.employee.first_name_en}
+                                        error={
+                                            localErrors[
+                                                "employee.first_name_en"
+                                            ]
+                                        }
+                                        onChange={(e) =>
+                                            updateData(
+                                                "employee",
+                                                "first_name_en",
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+                                    <Field
+                                        label="Last Name"
+                                        required
+                                        value={data.employee.last_name_en}
+                                        error={
+                                            localErrors["employee.last_name_en"]
+                                        }
+                                        onChange={(e) =>
+                                            updateData(
+                                                "employee",
+                                                "last_name_en",
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+
+                                    {/* แถว 3 */}
+                                    <Field
+                                        label="วันเกิด"
+                                        required
+                                        type="date"
+                                        value={data.employee.birth_date}
+                                        onChange={(e) =>
+                                            updateData(
+                                                "employee",
+                                                "birth_date",
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+                                    {/* อายุ — read only */}
+                                    <div className="flex items-center gap-2 w-full gap-2">
+                                        <span className="text-[14px] xl:text-[16px] text-gray-600 whitespace-nowrap text-right">
+                                            อายุ
+                                        </span>
+                                        <input
+                                            type="text"
+                                            value={calculateAge(
+                                                data.employee.birth_date,
+                                            )}
+                                            readOnly
+                                            placeholder="-"
+                                            className="bg-white flex-1 border border-gray-300 rounded px-2 py-1 text-[16px] text-gray-800 bg-gray-50 focus:outline-none cursor-default"
+                                        />
+                                    </div>
+                                    <Field
+                                        label="กรุ๊ปเลือด"
+                                        value={data.employee.blood_group}
+                                        options={["A", "B", "AB", "O"]}
+                                        onChange={(e) =>
+                                            updateData(
+                                                "employee",
+                                                "blood_group",
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+
+                                    {/* แถว 4 */}
+                                    <Field
+                                        label="เลขบัตรประชาชน"
+                                        value={data.identity.id_card_number}
+                                        error={
+                                            localErrors[
+                                                "identity.id_card_number"
+                                            ]
+                                        }
+                                        onChange={(e) =>
+                                            updateData(
+                                                "identity",
+                                                "id_card_number",
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+                                    <Field
+                                        label="เลข Passport"
+                                        value={data.identity.passport_number}
+                                        onChange={(e) =>
+                                            updateData(
+                                                "identity",
+                                                "passport_number",
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+                                    <Field
+                                        label="เลขบัตรชมพู"
+                                        value={data.identity.pink_card_number}
+                                        onChange={(e) =>
+                                            updateData(
+                                                "identity",
+                                                "pink_card_number",
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+
+                                    {/* แถว 5 */}
+                                    <Field
+                                        label="เลขใบอนุญาติทำงาน"
+                                        value={data.identity.work_permit_number}
+                                        onChange={(e) =>
+                                            updateData(
+                                                "identity",
+                                                "work_permit_number",
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+                                    <Field
+                                        label="เบอร์โทร"
+                                        required
+                                        value={data.employee.phone}
+                                        onChange={(e) =>
+                                            updateData(
+                                                "employee",
+                                                "phone",
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+                                    <Field
+                                        label="อีเมล"
+                                        type="email"
+                                        value={data.employee.email}
+                                        error={localErrors["employee.email"]}
+                                        onChange={(e) =>
+                                            updateData(
+                                                "employee",
+                                                "email",
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+                                </div>
+                                {/* โรคประจำตัว — full width */}
+                                <div className="flex items-center gap-2 mt-7">
+                                    <span className="text-[14px] xl:text-[16px] text-gray-600 whitespace-nowrap text-left">
+                                        โรคประจำตัว
+                                    </span>
+                                    <input
+                                        type="text"
+                                        value={data.employee.medical_condition}
+                                        onChange={(e) =>
+                                            updateData(
+                                                "employee",
+                                                "medical_condition",
+                                                e.target.value,
+                                            )
+                                        }
+                                        className="flex-1 border border-gray-300 rounded px-2 py-1 text-[16px] text-gray-800 bg-white focus:outline-none focus:ring-1"
+                                        style={{ "--tw-ring-color": "#B3702A" }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* ข้อมูลพนักงาน */}
+                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                            <SectionHeader title="ข้อมูลพนักงาน" />
+                            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-7 p-5 w-full justofy-center">
+                                <Field
+                                    label="รหัสพนักงาน"
+                                    value={data.employee.employee_code}
+                                    onChange={(e) =>
+                                        updateData(
+                                            "employee",
+                                            "employee_code",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                                <Field
+                                    label="ตำแหน่ง"
+                                    value={data.employee.position}
+                                    onChange={(e) =>
+                                        updateData(
+                                            "employee",
+                                            "position",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                                <Field
+                                    label="วันเข้าทำงาน"
+                                    type="date"
+                                    value={data.employee.hired_date}
+                                    onChange={(e) =>
+                                        updateData(
+                                            "employee",
+                                            "hired_date",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+
+                                <div className="flex items-center gap-2">
+                                    <label className="text-left text-[16px] text-gray-600 whitespace-nowrap">
+                                        อายุการทำงาน
+                                    </label>
+                                    <input
+                                        type="text"
+                                        disabled
+                                        value={calculateTenure(
+                                            data.employee.hired_date,
+                                        )}
+                                        className="min-w-[160px] block w-full border border-gray-300 rounded-lg p-2 bg-white text-gray-600 h-[34px]"
+                                    />
+                                </div>
+                                <Field
+                                    label="เลขประกันสังคม"
+                                    value={data.identity.ssn}
+                                    onChange={(e) =>
+                                        updateData(
+                                            "identity",
+                                            "ssn",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                                <Field
+                                    label="โรงพยาบาลประกันสังคม"
+                                    value={data.identity.ssn_hospital}
+                                    onChange={(e) =>
+                                        updateData(
+                                            "identity",
+                                            "ssn_hospital",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                            </div>
+                        </div>
+
+                        {/* ที่อยู่อาศัย */}
+                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                            <SectionHeader title="ที่อยู่อาศัย" />
+                            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-7 p-5">
+                                {" "}
+                                <Field
+                                    label="บ้านเลขที่"
+                                    value={data.address.house_no}
+                                    onChange={(e) =>
+                                        updateData(
+                                            "address",
+                                            "house_no",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                                <Field
+                                    label="หมู่"
+                                    value={data.address.moo}
+                                    onChange={(e) =>
+                                        updateData(
+                                            "address",
+                                            "moo",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                                <Field
+                                    label="หมู่บ้าน"
+                                    value={data.address.village_name}
+                                    onChange={(e) =>
+                                        updateData(
+                                            "address",
+                                            "village_name",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                                <Field
+                                    label="ซอย"
+                                    value={data.address.soi}
+                                    onChange={(e) =>
+                                        updateData(
+                                            "address",
+                                            "soi",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                                <Field
+                                    label="ถนน"
+                                    value={data.address.road}
+                                    onChange={(e) =>
+                                        updateData(
+                                            "address",
+                                            "road",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                                <Field
+                                    label="แขวง/ตำบล"
+                                    value={data.address.sub_district}
+                                    onChange={(e) =>
+                                        updateData(
+                                            "address",
+                                            "sub_district",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                                <Field
+                                    label="เขต/อำเภอ"
+                                    value={data.address.district}
+                                    onChange={(e) =>
+                                        updateData(
+                                            "address",
+                                            "district",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                                <Field
+                                    label="จังหวัด"
+                                    value={data.address.province}
+                                    onChange={(e) =>
+                                        updateData(
+                                            "address",
+                                            "province",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                                <Field
+                                    label="รหัสไปรษณีย์"
+                                    value={data.address.zipcode}
+                                    onChange={(e) =>
+                                        updateData(
+                                            "address",
+                                            "zipcode",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                            </div>
+                        </div>
+
+                        {/* ข้อมูลติดต่อฉุกเฉิน */}
+                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                            <SectionHeader title="ข้อมูลติดต่อฉุกเฉิน" />
+                            <div className="p-5 space-y-7">
+                                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-7">
+                                    <Field
+                                        label="ชื่อ-นามสกุล"
+                                        value={data.emergency.name}
+                                        onChange={(e) =>
+                                            updateData(
+                                                "emergency",
+                                                "name",
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+                                    <Field
+                                        label="ความสัมพันธ์"
+                                        value={data.emergency.relationship}
+                                        onChange={(e) =>
+                                            updateData(
+                                                "emergency",
+                                                "relationship",
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+                                    <Field
+                                        label="เบอร์ติดต่อ"
+                                        value={data.emergency.phone}
+                                        onChange={(e) =>
+                                            updateData(
+                                                "emergency",
+                                                "phone",
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+                                </div>
+                                <div className="flex gap-2 items-center">
+                                    <span className="text-[14px] xl:text-[16px] text-gray-600 whitespace-nowrap">
+                                        ที่อยู่
+                                    </span>
+                                    <input
+                                        type="text"
+                                        value={data.emergency.full_address}
+                                        onChange={(e) =>
+                                            updateData(
+                                                "emergency",
+                                                "full_address",
+                                                e.target.value,
+                                            )
+                                        }
+                                        className="w-full flex-1 border border-gray-300 rounded px-2 py-1 text-[14px] xl:text-[16px] text-gray-800 bg-white focus:outline-none focus:ring-1"
+                                        style={{ "--tw-ring-color": "#B3702A" }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* เอกสารที่เกี่ยวข้อง */}
+                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                            <SectionHeader title="เอกสารที่เกี่ยวข้อง" />
+
+                            {/* ฟอร์มให้แนบ pdf */}
+                            <div className="p-5 space-y-1">
+                                {documentFields.map((field) => (
+                                    <div
+                                        key={field.key}
+                                        className="flex items-center justify-center gap-4 py-2"
+                                    >
+                                        <span className="text-16px text-gray-600 w-32 text-right">
+                                            {field.label}
+                                        </span>
+
+                                        {/* ตัวครอบช่อง Input และปุ่ม */}
+                                        <div className="flex w-[400px] border border-gray-300 rounded-lg shadow-sm bg-white overflow-hidden h-10 shadow-[0_4px_4px_0_rgba(0,0,0,0.25)]">
+                                            {/* ฝั่งซ้าย: แสดงชื่อไฟล์ */}
+                                            <span className="flex-1 px-3 py-2 text-[14px] text-gray-600 truncate flex items-center ">
+                                                {data.documents[field.key]
+                                                    ?.name || ""}
+                                            </span>
+                                            {data.documents[field.key] && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setData("documents", {
+                                                            ...data.documents,
+                                                            [field.key]: null,
+                                                        })
+                                                    }
+                                                    className="pl-1 flex items-center justify-center transition-opacity hover:opacity-70"
+                                                    title="ลบไฟล์"
+                                                >
+                                                    <img
+                                                        src={close}
+                                                        alt="remove"
+                                                        className="w-3 h-3 mr-3" // ปรับขนาดรูปได้ที่นี่ (w-3, h-3 คือ 12px)
+                                                    />
+                                                </button>
+                                            )}{" "}
+                                            {/* ฝั่งขวา: ปุ่มอัปโหลด */}
+                                            <label className="text-[15px] cursor-pointer px-4 py-2 bg-gray-100 text-gray-700 text-xs font-medium border-l rounded-lg rounded- border-gray-300 hover:bg-gray-200 transition-colors flex items-center ">
+                                                อัปโหลด
+                                                <input
+                                                    type="file"
+                                                    className="hidden "
+                                                    onChange={(e) =>
+                                                        setData("documents", {
+                                                            ...data.documents,
+                                                            [field.key]:
+                                                                e.target
+                                                                    .files[0],
+                                                        })
+                                                    }
+                                                />
+                                            </label>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* ✅ ปุ่มกด (ย้อนกลับ & บันทึก) */}
+                        <div className="flex justify-end gap-3 mt-6 pb-10">
+                            <button
+                                type="button"
+                                onClick={() => window.history.back()}
+                                className="px-6 py-2.5 rounded-lg text-[16px] font-medium text-gray-700 border border-gray-300 bg-white hover:bg-gray-50 active:scale-95 transition-all duration-200"
+                            >
+                                ย้อนกลับ
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={processing}
+                                className="px-6 py-2.5 rounded-lg text-[16px] font-medium text-white shadow-sm active:scale-95 transition-all duration-200 disabled:opacity-50"
+                                style={{ backgroundColor: "#B3702A" }}
+                            >
+                                {processing ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
+                            </button>
+                        </div>
+                    </form>
+                </main>
+            </div>
+            {/* ✅ แทรกโค้ด Popup เพิ่มตรงนี้เลยครับ (ก่อนปิด </div> ตัวสุดท้าย) */}
+            {showConfirm && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm">
+                    <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4 transform transition-all">
+                        <div className="text-center">
+                            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-amber-100 mb-4">
+                                <svg
+                                    className="h-6 w-6 text-amber-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                    />
+                                </svg>
+                            </div>
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                ยืนยันการบันทึกข้อมูล
+                            </h3>
+                            <p className="text-[16px] text-gray-500 mb-6">
+                                ข้อมูลบางส่วนอาจยังกรอกไม่ครบถ้วน
+                                คุณยืนยันที่จะบันทึกข้อมูลใช่หรือไม่?
+                            </p>
+                            <div className="flex justify-center gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirm(false)}
+                                    className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                >
+                                    กลับไปแก้ไข
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={confirmAndSubmit}
+                                    className="px-4 py-2 text-white rounded-lg transition-colors"
+                                    style={{ backgroundColor: "#B3702A" }}
+                                >
+                                    ยืนยันการบันทึก
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
