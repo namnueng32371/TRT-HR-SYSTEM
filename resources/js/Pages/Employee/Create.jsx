@@ -62,7 +62,7 @@ const AvatarFemale = () => (
 //หัวตารางของแต่ละ ตารางเช่น ข้อมูลทั่วไป
 const SectionHeader = ({ title }) => (
     <div
-        className="px-5 py-3 rounded-t-xl"
+        className="px-5 py-3 rounded-t-none sm:rounded-t-xl"
         style={{ backgroundColor: "#75523B" }}
     >
         <h3 className="text-white font-medium text-[16px]">{title}</h3>
@@ -73,7 +73,7 @@ const SectionHeader = ({ title }) => (
 const ErrorText = ({ error }) => {
     if (!error) return null;
     return (
-        <p className="text-red-500 text-xs absolute -bottom-5 left-0 whitespace-nowrap">
+        <p className="text-red-500 text-xs absolute -bottom-4 sm:-bottom-5 right-0 sm:left-0 whitespace-nowrap">
             {error}
         </p>
     );
@@ -89,7 +89,10 @@ const Field = ({
     error = null,
 }) => (
     <div className="flex items-center gap-2 w-full">
-        <span className="text-[14px] xl:text-[16px] text-gray-600 whitespace-nowrap">
+        <span
+            className="text-[14px] xl:text-[16px] text-gray-600 whitespace-nowrap text-right"
+            style={{ minWidth: "120px" }}
+        >
             {label}
         </span>
 
@@ -105,7 +108,16 @@ const Field = ({
                             : "border-gray-300 focus:ring-[#B3702A]"
                     }`}
                 >
-                    <option value="">- เลือก -</option>
+                    <option
+                        value=""
+                        className={` w-full text-[14px] xl:text-[16px] border rounded px-2 py-1 text-gray-800 bg-white focus:outline-none focus:ring-1 transition-all ${
+                            error
+                                ? "border-red-500 focus:ring-red-500"
+                                : "border-gray-300 focus:ring-[#B3702A]"
+                        }`}
+                    >
+                        - เลือก -
+                    </option>
                     {options.map((opt) => (
                         <option key={opt} value={opt}>
                             {opt}
@@ -132,6 +144,7 @@ const Field = ({
 export default function Create() {
     const [localErrors, setLocalErrors] = useState({});
     const [showConfirm, setShowConfirm] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     // ใช้ useForm ซึ่งเป็น ปลั๊กอินของ Intertia โดยจะส่งข้อมูลไฟเป็น JSON ให้ที่ route
     // data ตัวแปรเก็บข้อมูล , ส่วน setData post processing เป็นฟังก์ชัน โดยเป็น class ที่ Intertia กำหนดไว้
     const { data, setData, post, processing, clearErrors } = useForm({
@@ -303,8 +316,22 @@ export default function Create() {
 
     return (
         <div className="flex h-screen overflow-hidden bg-gray-50">
-            {/* Sidebar (เหมือนเดิมเป๊ะ) */}
-            <aside className="w-52 flex flex-col flex-shrink-0 bg-white border-r border-gray-200 shadow-sm">
+            {/* Sidebar */}
+            {sidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/40 z-20 xl:hidden"
+                    onClick={() => setSidebarOpen(false)}
+                />
+            )}
+            <aside
+                className={`
+                    fixed xl:static inset-y-0 left-0 z-30
+                    w-72 flex flex-col flex-shrink-0 bg-white border-r border-gray-200 shadow-sm
+                    transition-transform duration-300 ease-in-out
+                    ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+                    xl:translate-x-0
+                          `}
+            >
                 <div className="flex items-center justify-center py-6 px-4 border-b border-gray-100">
                     <img src={TRTLogo} alt="TRT Logo" className="w-32" />
                 </div>
@@ -353,13 +380,55 @@ export default function Create() {
 
             {/* Main */}
             <div className="flex-1 flex flex-col overflow-hidden">
+                <div
+                    className={`static xl:fixed -top-full  
+                                px-5 bg-gray-50 h-20 flex items-center gap-2 
+                                transition-transform duration-300 ease-in-out
+                                
+                        `}
+                >
+                    {" "}
+                    {/* ปุ่ม hamburger — แสดงเฉพาะ < 1280px */}
+                    <button
+                        onClick={() => setSidebarOpen(!sidebarOpen)}
+                        className="static xl:hidden text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
+                    >
+                        <svg
+                            className="w-6 h-6"
+                            fill="none"
+                            stroke="black"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M4 6h16M4 12h16M4 18h16"
+                            />
+                        </svg>
+                    </button>
+                    <img
+                        src={TRTLogo}
+                        alt="TRT Logo"
+                        className="
+                        self-center origin-center
+                        transition-all duration-500 ease-in-out
+                        
+                        /* สถานะตอนจอเล็ก (แสดงผลปกติ) */
+                        w-20 opacity-100 scale-100
+                        
+                        /* สถานะตอนจอใหญ่ xl (ค่อยๆ จางและหดหายไป) */
+                        xl:opacity-0 xl:scale-50 xl:w-0 xl:m-0 xl:pointer-events-none
+                    "
+                    />
+                </div>
                 <header
-                    className="h-16 flex-shrink-0"
+                    className="h-10 xl:h-16 flex-shrink-0 flex items-center px-4"
                     style={{ backgroundColor: "#75523B" }}
-                />
+                ></header>
 
-                <main className="flex-1 overflow-auto p-6">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-5">
+                <main className="flex-1 overflow-auto p-0 sm:p-6">
+                    <h2 className="text-xl md:text-2xl px-4 pt-4 sm:px-0 sm:pt-0 font-bold text-gray-800 mb-5">
                         สร้างข้อมูล
                     </h2>
 
@@ -378,11 +447,11 @@ export default function Create() {
                     {/* ✅ คลุมข้อมูลทั้งหมดด้วย <form> */}
                     <form onSubmit={handleInitialSubmit} className="space-y-5">
                         {/* ข้อมูลทั่วไป */}
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div className="bg-white rounded-t-none sm:rounded-t-xl rounded-b-xl border border-gray-200 shadow-sm overflow-hidden">
                             <SectionHeader title="ข้อมูลทั่วไป" />
-                            <div className="p-5">
+                            <div className="p-2 py-4 md:p-5 md:py-6">
                                 {/* Grid 3 คอลัมน์ */}
-                                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-7">
+                                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-4 sm:gap-y-7">
                                     {/* แถว 1 */}
                                     <Field
                                         label="คำนำหน้า"
@@ -493,7 +562,10 @@ export default function Create() {
                                     />
                                     {/* อายุ — read only */}
                                     <div className="flex items-center gap-2 w-full gap-2">
-                                        <span className="text-[14px] xl:text-[16px] text-gray-600 whitespace-nowrap text-right">
+                                        <span
+                                            className=" text-[14px] xl:text-[16px] text-gray-600 whitespace-nowrap text-right"
+                                            style={{ minWidth: "120px" }}
+                                        >
                                             อายุ
                                         </span>
                                         <input
@@ -503,7 +575,7 @@ export default function Create() {
                                             )}
                                             readOnly
                                             placeholder="-"
-                                            className="bg-white flex-1 border border-gray-300 rounded px-2 py-1 text-[16px] text-gray-800 bg-gray-50 focus:outline-none cursor-default"
+                                            className="w-full bg-white  border border-gray-300 rounded px-2 py-1 text-[16px] text-gray-800 bg-gray-50 focus:outline-none cursor-default"
                                         />
                                     </div>
                                     <Field
@@ -598,8 +670,11 @@ export default function Create() {
                                     />
                                 </div>
                                 {/* โรคประจำตัว — full width */}
-                                <div className="flex items-center gap-2 mt-7">
-                                    <span className="text-[14px] xl:text-[16px] text-gray-600 whitespace-nowrap text-left">
+                                <div className="flex items-center gap-2 mt-5 sm:mt-7 w-full">
+                                    <span
+                                        className="text-[14px] xl:text-[16px] text-gray-600 whitespace-nowrap text-right"
+                                        style={{ minWidth: "120px" }}
+                                    >
                                         โรคประจำตัว
                                     </span>
                                     <input
@@ -612,7 +687,7 @@ export default function Create() {
                                                 e.target.value,
                                             )
                                         }
-                                        className="flex-1 border border-gray-300 rounded px-2 py-1 text-[16px] text-gray-800 bg-white focus:outline-none focus:ring-1"
+                                        className="w-full border border-gray-300 rounded px-2 py-1 text-[16px] text-gray-800 bg-white focus:outline-none focus:ring-1"
                                         style={{ "--tw-ring-color": "#B3702A" }}
                                     />
                                 </div>
@@ -620,9 +695,9 @@ export default function Create() {
                         </div>
 
                         {/* ข้อมูลพนักงาน */}
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div className="bg-white rounded-t-none sm:rounded-t-xl rounded-xl border border-gray-200 shadow-sm overflow-hidden ">
                             <SectionHeader title="ข้อมูลพนักงาน" />
-                            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-7 p-5 w-full justofy-center">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 w-full justofy-center gap-y-4 sm:gap-y-7 p-2 py-4 md:p-5 md:py-6">
                                 <Field
                                     label="รหัสพนักงาน"
                                     value={data.employee.employee_code}
@@ -658,8 +733,11 @@ export default function Create() {
                                     }
                                 />
 
-                                <div className="flex items-center gap-2">
-                                    <label className="text-left text-[16px] text-gray-600 whitespace-nowrap">
+                                <div className="flex items-center gap-2 w-full">
+                                    <label
+                                        className="text-right text-[14px] xl:text-[16px] text-gray-600 whitespace-nowrap"
+                                        style={{ minWidth: "120px" }}
+                                    >
                                         อายุการทำงาน
                                     </label>
                                     <input
@@ -668,7 +746,7 @@ export default function Create() {
                                         value={calculateTenure(
                                             data.employee.hired_date,
                                         )}
-                                        className="min-w-[160px] block w-full border border-gray-300 rounded-lg p-2 bg-white text-gray-600 h-[34px]"
+                                        className="w-60 sm:w-full block w-full border border-gray-300 rounded-lg p-2 bg-white text-gray-600 h-[34px]"
                                     />
                                 </div>
                                 <Field
@@ -697,9 +775,9 @@ export default function Create() {
                         </div>
 
                         {/* ที่อยู่อาศัย */}
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div className="bg-white rounded-t-none sm:rounded-t-xl rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                             <SectionHeader title="ที่อยู่อาศัย" />
-                            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-7 p-5">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 w-full justofy-center gap-y-4 sm:gap-y-7 p-2 py-4 md:p-5 md:py-6">
                                 {" "}
                                 <Field
                                     label="บ้านเลขที่"
@@ -804,10 +882,10 @@ export default function Create() {
                         </div>
 
                         {/* ข้อมูลติดต่อฉุกเฉิน */}
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div className="bg-white rounded-t-none sm:rounded-t-xl rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                             <SectionHeader title="ข้อมูลติดต่อฉุกเฉิน" />
-                            <div className="p-5 space-y-7">
-                                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-7">
+                            <div className="p-2 py-4 md:p-5 md:py-6">
+                                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-4 sm:gap-y-7 gap-y-4 sm:gap-y-7">
                                     <Field
                                         label="ชื่อ-นามสกุล"
                                         value={data.emergency.name}
@@ -842,8 +920,11 @@ export default function Create() {
                                         }
                                     />
                                 </div>
-                                <div className="flex gap-2 items-center">
-                                    <span className="text-[14px] xl:text-[16px] text-gray-600 whitespace-nowrap">
+                                <div className="flex gap-2 items-center mt-4 sm:mt-7 w-full">
+                                    <span
+                                        className="text-right text-[14px] xl:text-[16px] text-gray-600 whitespace-nowrap"
+                                        style={{ minWidth: "120px" }}
+                                    >
                                         ที่อยู่
                                     </span>
                                     <input
@@ -856,7 +937,7 @@ export default function Create() {
                                                 e.target.value,
                                             )
                                         }
-                                        className="w-full flex-1 border border-gray-300 rounded px-2 py-1 text-[14px] xl:text-[16px] text-gray-800 bg-white focus:outline-none focus:ring-1"
+                                        className="w-full border border-gray-300 rounded px-2 py-1 text-[14px] xl:text-[16px] text-gray-800 bg-white focus:outline-none focus:ring-1"
                                         style={{ "--tw-ring-color": "#B3702A" }}
                                     />
                                 </div>
@@ -864,17 +945,17 @@ export default function Create() {
                         </div>
 
                         {/* เอกสารที่เกี่ยวข้อง */}
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div className="bg-white rounded-t-none sm:rounded-t-xl rounded-xl border border-gray-200 shadow-sm overflow-hidden ">
                             <SectionHeader title="เอกสารที่เกี่ยวข้อง" />
 
                             {/* ฟอร์มให้แนบ pdf */}
-                            <div className="p-5 space-y-1">
+                            <div className="p-2 md:p-5 space-y-1">
                                 {documentFields.map((field) => (
                                     <div
                                         key={field.key}
                                         className="flex items-center justify-center gap-4 py-2"
                                     >
-                                        <span className="text-16px text-gray-600 w-32 text-right">
+                                        <span className="whitespace-nowrap text-[14px] md:text-[16px] text-gray-600 w-32 text-right">
                                             {field.label}
                                         </span>
 
@@ -905,7 +986,7 @@ export default function Create() {
                                                 </button>
                                             )}{" "}
                                             {/* ฝั่งขวา: ปุ่มอัปโหลด */}
-                                            <label className="text-[15px] cursor-pointer px-4 py-2 bg-gray-100 text-gray-700 text-xs font-medium border-l rounded-lg rounded- border-gray-300 hover:bg-gray-200 transition-colors flex items-center ">
+                                            <label className=" text-[15px] cursor-pointer px-2 sm:px-4 bg-gray-100 text-gray-700 text-xs font-medium border-l rounded-lg rounded- border-gray-300 hover:bg-gray-200 transition-colors flex items-center ">
                                                 อัปโหลด
                                                 <input
                                                     type="file"
@@ -927,18 +1008,18 @@ export default function Create() {
                         </div>
 
                         {/* ✅ ปุ่มกด (ย้อนกลับ & บันทึก) */}
-                        <div className="flex justify-end gap-3 mt-6 pb-10">
+                        <div className="flex justify-end gap-3 mt-6 pb-10 pr-2 sm:pr-0">
                             <button
                                 type="button"
                                 onClick={() => window.history.back()}
-                                className="px-6 py-2.5 rounded-lg text-[16px] font-medium text-gray-700 border border-gray-300 bg-white hover:bg-gray-50 active:scale-95 transition-all duration-200"
+                                className="px-6 py-2.5 rounded-lg text-[14px] sm:text-[16px] font-medium text-gray-700 border border-gray-300 bg-white hover:bg-gray-50 active:scale-95 transition-all duration-200"
                             >
                                 ย้อนกลับ
                             </button>
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="px-6 py-2.5 rounded-lg text-[16px] font-medium text-white shadow-sm active:scale-95 transition-all duration-200 disabled:opacity-50"
+                                className="px-6 py-2.5 rounded-lg text-[14px] sm:text-[16px] font-medium text-white shadow-sm active:scale-95 transition-all duration-200 disabled:opacity-50"
                                 style={{ backgroundColor: "#B3702A" }}
                             >
                                 {processing ? "กำลังบันทึก..." : "บันทึกข้อมูล"}

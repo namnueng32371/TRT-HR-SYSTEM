@@ -41,7 +41,7 @@ const AvatarFemale = () => (
     </svg>
 );
 
-const ActionDropdown = ({ empId, openId, setOpenId }) => {
+const ActionDropdown = ({ empId, openId, setOpenId, dropUp }) => {
     const isOpen = openId === empId;
     const ref = useRef(null);
 
@@ -113,63 +113,70 @@ const ActionDropdown = ({ empId, openId, setOpenId }) => {
     ];
 
     return (
-        <div className="relative" ref={ref}>
-            <style>{`
+        <div className="flex justify-center" ref={ref}>
+            <div className="relative w-fit">
+                {" "}
+                <style>{`
                 @keyframes dropdownOpen {
                     from { opacity: 0; transform: translateY(-6px) scale(0.97); }
                     to   { opacity: 1; transform: translateY(0)   scale(1);    }
                 }
             `}</style>
-
-            {/* ปุ่มเพิ่มเติม */}
-            <button
-                onClick={() => setOpenId(isOpen ? null : empId)}
-                className="px-2 md:px-4 py-1 md:py-2  rounded-lg text-sm font-medium text-white flex items-center gap-1.5 transition-all duration-200 hover:opacity-90 active:scale-95 text-nowrap"
-                style={{ backgroundColor: "#B3702A" }}
-            >
-                เพิ่มเติม
-                <svg
-                    className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                {/* ปุ่มเพิ่มเติม */}
+                <button
+                    onClick={() => setOpenId(isOpen ? null : empId)}
+                    className="px-2 md:px-4 py-1 md:py-2  rounded-lg text-sm font-medium text-white flex items-center gap-1.5 transition-all duration-200 hover:opacity-90 active:scale-95 text-nowrap"
+                    style={{ backgroundColor: "#B3702A" }}
                 >
-                    <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2.5}
-                        d="M19 9l-7 7-7-7"
-                    />
-                </svg>
-            </button>
-
-            {/* Dropdown */}
-            {isOpen && (
-                <div
-                    className="absolute lift-0 mt-1.5 w-44 bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden z-50"
-                    style={{
-                        animation: "dropdownOpen 0.18s ease-out forwards",
-                    }}
-                >
-                    {menuItems.map((item, idx) => (
-                        <Link
-                            key={idx}
-                            href={item.href}
-                            onClick={() => setOpenId(null)}
-                            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-800 transition-colors duration-150"
-                            style={{
-                                borderBottom:
-                                    idx < menuItems.length - 1
-                                        ? "1px solid #F3F4F6"
-                                        : "none",
-                            }}
-                        >
-                            <span className="text-gray-400">{item.icon}</span>
-                            {item.label}
-                        </Link>
-                    ))}
-                </div>
-            )}
+                    เพิ่มเติม
+                    <svg
+                        className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2.5}
+                            d="M19 9l-7 7-7-7"
+                        />
+                    </svg>
+                </button>
+                {/* Dropdown */}
+                {isOpen && (
+                    <div
+                        className={`absolute w-44 bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden z-50  ${
+                            dropUp
+                                ? "bottom-full right-0 mb-2 origin-bottom" // 🟢 ถ้าเป็นแถวท้าย: ยึดก้นปุ่ม (เปิดขึ้นบน) เว้นระยะ 8px
+                                : "right-0 mt-2 origin-top" // ⚪ ถ้าเป็นแถวแรกๆ: ยึดใต้ปุ่ม (เปิดลงล่าง) เหมือนเดิม
+                        }`}
+                        style={{
+                            animation: "dropdownOpen 0.18s ease-out forwards",
+                        }}
+                    >
+                        {menuItems.map((item, idx) => (
+                            <Link
+                                key={idx}
+                                href={item.href}
+                                onClick={() => setOpenId(null)}
+                                className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-800 transition-colors duration-150`}
+                                style={{
+                                    borderBottom:
+                                        idx < menuItems.length - 1
+                                            ? "1px solid #F3F4F6"
+                                            : "none",
+                                }}
+                            >
+                                <span className="text-gray-400">
+                                    {item.icon}
+                                </span>
+                                {item.label}
+                            </Link>
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
@@ -183,7 +190,7 @@ export default function Dashboard({ employees }) {
     const [currentPage, setCurrentPage] = useState(1);
     const [openDropdownId, setOpenDropdownId] = useState(null);
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const perPage = 5;
+    const perPage = 10;
 
     const handleSearch = () => {
         const result = employees.filter((e) => {
@@ -352,12 +359,18 @@ export default function Dashboard({ employees }) {
             {/* Main */}
             <div className="flex-1 flex flex-col overflow-hidden">
                 {/* Top bar */}
-                <div className="bg-gray-50 h-16 flex items-center gap-2">
+                <div
+                    className={`static xl:fixed -top-full  
+                                px-5 bg-gray-50 h-20 flex items-center gap-2 
+                                transition-transform duration-300 ease-in-out
+                                
+                        `}
+                >
                     {" "}
                     {/* ปุ่ม hamburger — แสดงเฉพาะ < 1280px */}
                     <button
                         onClick={() => setSidebarOpen(!sidebarOpen)}
-                        className="xl:hidden text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
+                        className="static xl:hidden text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
                     >
                         <svg
                             className="w-6 h-6"
@@ -377,19 +390,19 @@ export default function Dashboard({ employees }) {
                         src={TRTLogo}
                         alt="TRT Logo"
                         className="
-        self-center origin-center
-        transition-all duration-500 ease-in-out
-        
-        /* สถานะตอนจอเล็ก (แสดงผลปกติ) */
-        w-20 opacity-100 scale-100
-        
-        /* สถานะตอนจอใหญ่ xl (ค่อยๆ จางและหดหายไป) */
-        xl:opacity-0 xl:scale-50 xl:w-0 xl:m-0 xl:pointer-events-none
-    "
+                        self-center origin-center
+                        transition-all duration-500 ease-in-out
+                        
+                        /* สถานะตอนจอเล็ก (แสดงผลปกติ) */
+                        w-20 opacity-100 scale-100
+                        
+                        /* สถานะตอนจอใหญ่ xl (ค่อยๆ จางและหดหายไป) */
+                        xl:opacity-0 xl:scale-50 xl:w-0 xl:m-0 xl:pointer-events-none
+                    "
                     />
                 </div>
                 <header
-                    className="h-16 flex-shrink-0 flex items-center px-4"
+                    className="h-10 xl:h-16 flex-shrink-0 flex items-center px-4"
                     style={{ backgroundColor: "#75523B" }}
                 ></header>
 
@@ -400,16 +413,15 @@ export default function Dashboard({ employees }) {
                         <h2 className="text-md xl:text-lg font-bold text-gray-800 mb-4">
                             ค้นหา
                         </h2>
-                        <div className="flex gap-3 items-center flex-wrap">
+                        <div className="flex gap-3 items-center flex-wrap w-full">
                             <input
                                 type="text"
                                 placeholder="รหัสพนักงาน"
                                 value={searchCode}
                                 onChange={(e) => setSearchCode(e.target.value)}
-                                className={inputClass}
+                                className="w-full sm:w-[400px] px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200"
                                 onKeyDown={handleKeyDown}
                                 style={{
-                                    maxWidth: 200,
                                     "--tw-ring-color": "#B3702A",
                                 }}
                             />
@@ -418,10 +430,9 @@ export default function Dashboard({ employees }) {
                                 placeholder="ชื่อ - นามสกุล"
                                 value={searchName}
                                 onChange={(e) => setSearchName(e.target.value)}
-                                className={inputClass}
+                                className="w-full sm:w-[240px] px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200"
                                 onKeyDown={handleKeyDown}
                                 style={{
-                                    maxWidth: 240,
                                     "--tw-ring-color": "#B3702A",
                                 }}
                             />
@@ -432,32 +443,32 @@ export default function Dashboard({ employees }) {
                                 onChange={(e) =>
                                     setSearchNickname(e.target.value)
                                 }
-                                className={inputClass}
+                                className="w-full sm:w-[180px] px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200"
                                 onKeyDown={handleKeyDown}
                                 style={{
-                                    maxWidth: 180,
                                     "--tw-ring-color": "#B3702A",
                                 }}
                             />
-                            <button
-                                onClick={handleSearch}
-                                className="px-6 py-2.5 rounded-lg text-sm font-medium text-gray-600 border border-gray-300 bg-white transition-all duration-200 hover:bg-gray-50 active:scale-95"
-                            >
-                                ค้นหา
-                            </button>
-                            <button
-                                onClick={handleClear}
-                                className="px-6 py-2.5 rounded-lg text-sm font-medium text-gray-600 border border-gray-300 bg-white transition-all duration-200 hover:bg-gray-50 active:scale-95"
-                            >
-                                ล้างค่า
-                            </button>
+                            <div className="flex justify-center sm:justify-start gap-3 w-full sm:w-fit">
+                                <button
+                                    onClick={handleSearch}
+                                    className="px-6 py-2.5 rounded-lg text-sm font-medium text-gray-600 border border-gray-300 bg-white transition-all duration-200 hover:bg-gray-50 active:scale-95"
+                                >
+                                    ค้นหา
+                                </button>
+                                <button
+                                    onClick={handleClear}
+                                    className="px-6 py-2.5 rounded-lg text-sm font-medium text-gray-600 border border-gray-300 bg-white transition-all duration-200 hover:bg-gray-50 active:scale-95"
+                                >
+                                    ล้างค่า
+                                </button>
+                            </div>
                         </div>
                     </div>
 
                     {/* Table Card */}
-
-                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                        <div className="overflow-x-auto w-full">
+                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ">
+                        <div className="overflow-x-auto w-full mb-12">
                             <table className="w-full min-w-[800px]">
                                 <thead>
                                     <tr style={{ backgroundColor: "#75523B" }}>
@@ -469,10 +480,10 @@ export default function Dashboard({ employees }) {
                                             "วันเข้าทำงาน",
                                             "เบอร์โทรศัพท์",
                                             "รายละเอียด",
-                                        ].map((h) => (
+                                        ].map((h, index, arr) => (
                                             <th
                                                 key={h}
-                                                className="px-4 py-3.5 text-sm font-semibold text-white text-left whitespace-nowrap"
+                                                className={`py-4 text-center text-sm font-semibold text-white text-left whitespace-nowrap ${index === arr.length - 1 ? "pr-5" : "" || index === 0 ? "p-2" : ""}`}
                                             >
                                                 {h}
                                             </th>
@@ -493,10 +504,10 @@ export default function Dashboard({ employees }) {
                                         paginated.map((emp, i) => (
                                             <tr
                                                 key={emp.id}
-                                                className={`transition-colors duration-150 hover:bg-amber-50 ${i % 2 === 1 ? "bg-gray-50/50" : "bg-white"}`}
+                                                className={`transition-colors duration-150 hover:bg-amber-50`}
                                             >
-                                                <td className="px-4 py-3">
-                                                    <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gray-100">
+                                                <td className="m py-3.5 flex justify-center">
+                                                    <div className="w-16 h-auto lg:w-20 rounded-full overflow-hidden border-2 border-gray-100">
                                                         {emp.prefix === "นาย" ||
                                                         emp.prefix === "Mr." ? (
                                                             <AvatarMale />
@@ -505,28 +516,34 @@ export default function Dashboard({ employees }) {
                                                         )}
                                                     </div>
                                                 </td>
-                                                <td className="px-4 py-3 text-sm font-medium text-gray-700">
+                                                <td className="py-3 text-center text-sm font-medium text-gray-700">
                                                     {emp.employee_code}
                                                 </td>
-                                                <td className="px-4 py-3 text-sm text-gray-800">
+                                                <td className="py-3 text-center text-sm text-gray-800">
                                                     {emp.first_name_th}{" "}
                                                     {emp.last_name_th}
                                                 </td>
-                                                <td className="px-4 py-3 text-sm text-gray-600">
+                                                <td className="py-3 text-center text-sm text-gray-600">
                                                     {emp.position}
                                                 </td>
-                                                <td className="px-4 py-3 text-sm text-gray-600">
+                                                <td className="py-3 text-center text-sm text-gray-600">
                                                     {emp.hired_date}
                                                 </td>
-                                                <td className="px-4 py-3 text-sm text-gray-600">
+                                                <td className="py-3 text-center text-sm text-gray-600">
                                                     {emp.phone}
                                                 </td>
-                                                <td className="px-4 py-3">
+                                                <td className="pr-5">
                                                     <ActionDropdown
                                                         empId={emp.id}
                                                         openId={openDropdownId}
                                                         setOpenId={
                                                             setOpenDropdownId
+                                                        }
+                                                        dropUp={
+                                                            i >=
+                                                                paginated.length -
+                                                                    1 &&
+                                                            paginated.length > 2
                                                         }
                                                     />
                                                 </td>
