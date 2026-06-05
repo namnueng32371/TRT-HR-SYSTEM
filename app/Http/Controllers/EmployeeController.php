@@ -56,12 +56,16 @@ class EmployeeController extends Controller
         return Inertia::render('Employee/Create');
     }
 
-    // ส่งค่า จาก form แล้ว validation ไปเก็บใน database คล้ายๆ push
-    // $request เปรียบเป็นกล่องที่ส่งมาจากหน้าบ้าน
+    // ส่งค่า จาก form แล้ว validation หน้าบ้านมา
+    // แล้วมาโดย controller ตรงนี้ก่อนเพื่อเช็ค validation หลังบ้าน
+    // $request เปรียบเป็นกล่องที่ส่งมาจากหน้าบ้าน คล้าย rest.json
+    // โดยก่อนจะคุยกับ model มันททำงานร่วมกับ EmployeeService หรือ Services ก่อน
+    // ไปเปิดดูที่ EmployeeService
     public function store(Request $request, EmployeeService $employeeService)
     {
         // validation ตรวจสอบความถูกต้องข้อมูล
         $request->validate([
+            'employee.profile_image' => 'nullable|image|max:2048',
             'employee.employee_code' => 'required|unique:employees,employee_code',
             'employee.prefix'        => 'required|string',
             'employee.first_name_th' => 'required|string|max:255',
@@ -96,11 +100,11 @@ class EmployeeController extends Controller
         ]);
 
         // พอตรวจสอบสำเร็จก็จะส่ง createEmployee ใน EmployeeService ทำงานแทน
-        $employeeService->createEmployee($request->only([
-            'employee', 'identity', 'address', 'emergency',
-        ]));
+        $employeeService->createEmployee(
+            $request->only(['employee', 'identity', 'address', 'emergency',]),
+            $request->file('employee.profile_image')
+            );
 
-        // ✅ แก้: route name ให้ตรง
         return redirect()->route('dashboard')
             ->with('success', 'บันทึกข้อมูลพนักงานสำเร็จ!');
     }

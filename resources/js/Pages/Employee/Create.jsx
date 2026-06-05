@@ -163,6 +163,7 @@ export default function Create() {
             blood_group: "",
             medical_condition: "",
             hired_date: "",
+            profile_image: null,
         },
         identity: {
             id_card_number: "",
@@ -267,7 +268,9 @@ export default function Create() {
     // ✅ 8. ส่งข้อมูลจริง (หลังจากกดยืนยันใน Popup)
     const confirmAndSubmit = () => {
         setShowConfirm(false);
-        post(route("employee.store"));
+        post(route("employee.store"), {
+            forceFormData: true, // ← สำคัญมาก! บังคับส่งเป็น multipart
+        });
     };
 
     const calculateAge = (birthDate) => {
@@ -432,14 +435,120 @@ export default function Create() {
                         สร้างข้อมูล
                     </h2>
 
+                    {/* Avatar + ปุ่มอัปโหลด */}
                     <div className="flex justify-center mb-6">
-                        <div className="w-28 h-28 rounded-lg overflow-hidden border-2 border-gray-200 shadow-sm">
-                            {prefix === "นาย" ? (
-                                <AvatarMale />
-                            ) : prefix === "นาง" || prefix === "นางสาว" ? (
-                                <AvatarFemale />
-                            ) : (
-                                <AvatarDefault />
+                        <div className="relative w-28 h-28">
+                            {/* รูป Avatar */}
+                            <div className="w-28 h-28 rounded-lg overflow-hidden border-2 border-gray-200 shadow-sm">
+                                {data.employee.profile_image ? (
+                                    // ถ้ามีรูปที่เลือกแล้ว → แสดงรูป preview
+                                    <img
+                                        src={URL.createObjectURL(
+                                            data.employee.profile_image,
+                                        )}
+                                        alt="profile"
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : prefix === "นาย" ? (
+                                    <AvatarMale />
+                                ) : prefix === "นาง" || prefix === "นางสาว" ? (
+                                    <AvatarFemale />
+                                ) : (
+                                    <AvatarDefault />
+                                )}
+                            </div>
+
+                            {/* ปุ่มกล้อง — วางมุมขวาล่าง */}
+                            <label className="absolute bottom-1 right-1 w-7 h-7 rounded-full bg-white border border-gray-300 shadow flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
+                                <svg
+                                    className="w-4 h-4 text-gray-500"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                                    />
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                                    />
+                                </svg>
+
+                                {/* input ซ่อนไว้ */}
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                        const file = e.target.files[0];
+                                        if (!file) return;
+
+                                        // จำกัดขนาด 2MB
+                                        const maxSize = 2 * 1024 * 1024; // 2MB เป็น bytes
+                                        if (file.size > maxSize) {
+                                            alert(
+                                                "รูปภาพต้องมีขนาดไม่เกิน 2MB",
+                                            );
+                                            e.target.value = ""; // reset input
+                                            return;
+                                        }
+
+                                        // ✅ ตรวจสอบประเภทไฟล์
+                                        const allowedTypes = [
+                                            "image/jpeg",
+                                            "image/png",
+                                            "image/webp",
+                                        ];
+                                        if (!allowedTypes.includes(file.type)) {
+                                            alert(
+                                                "รองรับเฉพาะไฟล์ .jpg .png .webp เท่านั้น",
+                                            );
+                                            e.target.value = "";
+                                            return;
+                                        }
+
+                                        // ...data.employee กล่องเก็บข้อมูลพนังงาน
+                                        // และ , บอกว่าเราจะเก็บไฟล์ file ไปใน profile_image นะ
+                                        setData("employee", {
+                                            ...data.employee,
+                                            profile_image: file,
+                                        });
+                                    }}
+                                />
+                            </label>
+
+                            {/* ปุ่มลบรูป — แสดงเมื่อมีรูป */}
+                            {data.employee.profile_image && (
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setData("employee", {
+                                            ...data.employee,
+                                            profile_image: null,
+                                        })
+                                    }
+                                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center hover:bg-red-600 transition-colors"
+                                >
+                                    <svg
+                                        className="w-3 h-3 text-white"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2.5}
+                                            d="M6 18L18 6M6 6l12 12"
+                                        />
+                                    </svg>
+                                </button>
                             )}
                         </div>
                     </div>

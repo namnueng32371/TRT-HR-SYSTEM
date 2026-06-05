@@ -4,10 +4,22 @@ namespace App\Services;
 
 use App\Models\Employee;
 
+// ฟังชันชื่อ EmployeeService ส่งข้อมูลที่ผ่านการตรวจสอบมาที่นี้
+// แล้วทำการสร้างตารางข้อมูลไปเก็บใน data ผ่านการคุยกับ Employee:Models
 class EmployeeService
 {
-    public function createEmployee(array $data): Employee
+    public function createEmployee(array $data, $profileImage = null): Employee
     {
+            // ถ้ามีรูป → บันทึกไฟล์ก่อน แล้วเก็บ path
+        if ($profileImage) {
+            // บันทึกใน storage/app/public/employees/profiles/
+            // ได้ path กลับมา เช่น "employees/profiles/abc123.jpg"
+            $path = $profileImage->store('employees/profiles', 'public');
+            
+            // ใส่ path เข้าไปใน data ก่อน create
+            $data['employee']['profile_image'] = $path;
+        }
+        
         // 1. สร้างข้อมูลตารางหลัก
         $employee = Employee::create($data['employee']);
 
