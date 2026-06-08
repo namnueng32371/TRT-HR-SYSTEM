@@ -65,7 +65,15 @@ class EmployeeController extends Controller
     {
         // validation ตรวจสอบความถูกต้องข้อมูล
         $request->validate([
+            'documents.id_card_path'       => 'nullable|file|mimes:pdf,jpg,png|max:5120', // 5MB
+            'documents.house_reg_path'     => 'nullable|file|mimes:pdf,jpg,png|max:5120',
+            'documents.contract_path'      => 'nullable|file|mimes:pdf|max:5120',
+            'documents.bank_book_path'     => 'nullable|file|mimes:pdf,jpg,png|max:5120',
+            'documents.transcript_path'    => 'nullable|file|mimes:pdf|max:5120',
+            'documents.application_form_path' => 'nullable|file|mimes:pdf|max:5120',
+            'documents.other_docs_path'    => 'nullable|file|max:5120',
             'employee.profile_image' => 'nullable|image|max:2048',
+            
             'employee.employee_code' => 'required|unique:employees,employee_code',
             'employee.prefix'        => 'required|string',
             'employee.first_name_th' => 'required|string|max:255',
@@ -102,7 +110,8 @@ class EmployeeController extends Controller
         // พอตรวจสอบสำเร็จก็จะส่ง createEmployee ใน EmployeeService ทำงานแทน
         $employeeService->createEmployee(
             $request->only(['employee', 'identity', 'address', 'emergency',]),
-            $request->file('employee.profile_image')
+            $request->file('employee.profile_image'),
+            $request->file('documents')
             );
 
         return redirect()->route('dashboard')
