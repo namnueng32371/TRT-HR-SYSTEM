@@ -55,6 +55,17 @@ class EmployeeController extends Controller
         // route ส่งมาที่ฟังก์ชันนี้ แล้วบอกให้เปิดหน้า Create 
         return Inertia::render('Employee/Create');
     }
+    
+     // ✅ เพิ่มใหม่: render หน้า Document
+    public function document(Employee $employee)
+    {
+        // โหลด Relationship document ติดมาด้วย
+        $employee->load('document'); 
+        
+        return Inertia::render('Employee/EmployeeDocument', [
+            'employee' => $employee
+        ]);
+    }
 
     // ส่งค่า จาก form แล้ว validation หน้าบ้านมา
     // แล้วมาโดย controller ตรงนี้ก่อนเพื่อเช็ค validation หลังบ้าน
@@ -95,16 +106,16 @@ class EmployeeController extends Controller
             'identity.ssn'                => 'nullable|string|max:20',
             'identity.ssn_hospital'       => 'nullable|string|max:255',
 
-            'address.house_no'     => 'required|string',
-            'address.sub_district' => 'required|string',
-            'address.district'     => 'required|string',
-            'address.province'     => 'required|string',
-            'address.zipcode'      => 'required|string|max:10',
+            'address.house_no'     => 'nullable|string',
+            'address.sub_district' => 'nullable|string',
+            'address.district'     => 'nullable|string',
+            'address.province'     => 'nullable|string',
+            'address.zipcode'      => 'nullable|string|max:10',
 
-            'emergency.name'         => 'required|string',
-            'emergency.relationship' => 'required|string',
-            'emergency.phone'        => 'required|string|max:20',
-            'emergency.full_address' => 'required|string',
+            'emergency.name'         => 'nullable|string',
+            'emergency.relationship' => 'nullable|string',
+            'emergency.phone'        => 'nullable|string|max:20',
+            'emergency.full_address' => 'nullable|string',
         ]);
 
         // พอตรวจสอบสำเร็จก็จะส่ง createEmployee ใน EmployeeService ทำงานแทน

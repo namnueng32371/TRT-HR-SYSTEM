@@ -21,6 +21,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/employee', [EmployeeController::class, 'store'])->name('employee.store');
     // กดไปหน้าดูข้อมูลพนักงานแต่ละคน
     Route::get('/employee/{employee}', [EmployeeController::class, 'show'])->name('employee.show');
+    
+    Route::get('/employee/{employee}/document', [EmployeeController::class, 'document'])->name('employee.document');
+
 });
 
 require __DIR__.'/auth.php';

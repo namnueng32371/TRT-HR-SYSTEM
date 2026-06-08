@@ -53,11 +53,10 @@ class EmployeeService
                 }
             }
         }
+
         
-
         // 5. เอกสาร (สร้าง record ว่างไว้รอ upload)
-        $employee->document()->create([]);
-
+       $employee->document()->create($docData);
         
 
         return $employee;

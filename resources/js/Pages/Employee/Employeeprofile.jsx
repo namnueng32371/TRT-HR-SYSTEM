@@ -511,7 +511,7 @@ export default function EmployeeProfile({ employee }) {
                     </div>
 
                     {/* ปุ่มย้อนกลับ */}
-                    <div className="flex justify-end mt-6 pb-10 pr-2 sm:pr-0">
+                    <div className="flex justify-end mt-6 pb-8 pr-2 sm:pr-0">
                         <button
                             onClick={() => window.history.back()}
                             className="px-6 py-2.5 rounded-lg text-sm font-medium text-gray-700 border border-gray-300 bg-white hover:bg-gray-50 active:scale-95 transition-all duration-200"

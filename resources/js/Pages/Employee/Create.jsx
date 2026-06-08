@@ -2,6 +2,12 @@ import { Link, useForm } from "@inertiajs/react";
 import { useState } from "react";
 import TRTLogo from "../../../../public/images/logo.png";
 import close from "../../../../public/images/icon/close.png";
+// import DatePicker, { registerLocale } from "react-datepicker";
+// import "react-datepicker/dist/react-datepicker.css";
+// import { th } from "date-fns/locale"; // เอาไว้ทำปฏิทินภาษาไทย
+// import { format } from "date-fns";
+
+// registerLocale("th", th); // ลงทะเบียนภาษาไทยให้ปฏิทิน
 
 const AvatarDefault = () => (
     <svg
@@ -87,13 +93,15 @@ const Field = ({
     type = "text",
     options = null,
     error = null,
+    isRequired = false,
 }) => (
-    <div className="flex items-center gap-2 w-full">
+    <div className="flex items-center gap-2 w-full ">
         <span
             className="text-[14px] xl:text-[16px] text-gray-600 whitespace-nowrap text-right"
             style={{ minWidth: "120px" }}
         >
             {label}
+            {isRequired && <span className="text-red-500">*</span>}
         </span>
 
         <div className="relative flex-1">
@@ -147,7 +155,7 @@ export default function Create() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     // ใช้ useForm ซึ่งเป็น ปลั๊กอินของ Intertia โดยจะส่งข้อมูลไฟเป็น JSON ให้ที่ route
     // data ตัวแปรเก็บข้อมูล , ส่วน setData post processing เป็นฟังก์ชัน โดยเป็น class ที่ Intertia กำหนดไว้
-    const { data, setData, post, processing, clearErrors } = useForm({
+    const { data, setData, post, processing, errors, clearErrors } = useForm({
         employee: {
             employee_code: "",
             prefix: "",
@@ -211,6 +219,19 @@ export default function Create() {
         { label: "เอกสารอื่นๆ", key: "other_docs_path" },
     ];
 
+    const requiredFields = [
+        { category: "employee", field: "prefix", name: "คำนำหน้า" },
+        { category: "employee", field: "first_name_th", name: "ชื่อภาษาไทย" },
+        { category: "employee", field: "last_name_th", name: "นามสกุลภาษาไทย" },
+        { category: "employee", field: "first_name_en", name: "First Name" },
+        { category: "employee", field: "last_name_en", name: "Last Name" },
+        { category: "employee", field: "birth_date", name: "วันเกิด" },
+        { category: "employee", field: "employee_code", name: "รหัสพนักงาน" },
+        { category: "employee", field: "position", name: "ตำแหน่ง" },
+        { category: "employee", field: "hired_date", name: "วันเข้าทำงาน" },
+        { category: "employee", field: "phone", name: "เบอร์โทร" },
+    ];
+
     const thaiRegex = /^[ก-๙\s]*$/; // ยอมรับเฉพาะ ก-ฮ และช่องว่าง
     const engRegex = /^[A-Za-z\s]*$/; // ยอมรับเฉพาะ A-Z, a-z และช่องว่าง
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // สูตรตรวจจับอีเมลที่มี @ และ .
@@ -248,28 +269,102 @@ export default function Create() {
         setData(category, { ...data[category], [field]: value });
     };
 
-    // ✅ 3. ฟังก์ชันตอนกดส่งฟอร์ม
+    // ✅ 3. ฟังก์ชันแสดง pop up ถ้าข้อมูลกรอกไม่ครบ
     const handleInitialSubmit = (e) => {
         e.preventDefault();
 
-        // เช็คว่ามี Error แดงๆ ค้างอยู่ไหม ถ้ามีไม่ยอมให้ส่ง
-        const hasErrors = Object.values(localErrors).some(
-            (err) => err !== null,
-        );
-        // ถ้ามี
+        let newErrors = { ...localErrors };
+        let hasEmptyRequired = false;
+
+        requiredFields.forEach(({ category, field, name }) => {
+            const value = data[category][field];
+            if (!value || value.toString().trim() === "") {
+                newErrors[`${category}.${field}`] = `กรุณากรอก${name}`;
+                hasEmptyRequired = true;
+            }
+        });
+
+        setLocalErrors(newErrors);
+
+        const hasErrors = Object.values(newErrors).some((err) => err !== null);
+
         if (hasErrors) {
-            alert("กรุณาแก้ไขข้อมูลที่ผิดพลาด (สีแดง) ให้ถูกต้องก่อนบันทึก");
+            // หา section แรกที่มี error แล้ว scroll ไป
+            setTimeout(() => {
+                const sectionMap = {
+                    "section-general": [
+                        "employee.prefix",
+                        "employee.first_name_th",
+                        "employee.last_name_th",
+                        "employee.first_name_en",
+                        "employee.last_name_en",
+                        "employee.birth_date",
+                        "employee.phone",
+                        "identity.id_card_number",
+                    ],
+                    "section-employee": [
+                        "employee.employee_code",
+                        "employee.position",
+                        "employee.hired_date",
+                    ],
+                    "section-address": [
+                        "address.house_no",
+                        "address.sub_district",
+                        "address.district",
+                        "address.province",
+                        "address.zipcode",
+                    ],
+                    "section-emergency": [
+                        "emergency.name",
+                        "emergency.relationship",
+                        "emergency.phone",
+                        "emergency.full_address",
+                    ],
+                };
+
+                // หา section แรกที่มี error
+                const firstSection = Object.entries(sectionMap).find(
+                    ([, fields]) => fields.some((key) => newErrors[key]),
+                );
+
+                if (firstSection) {
+                    const el = document.getElementById(firstSection[0]);
+                    if (el) {
+                        el.scrollIntoView({
+                            behavior: "smooth",
+                            block: "start",
+                        });
+                    }
+                }
+            }, 100);
+
             return;
         }
 
-        setShowConfirm(true); // เปิด Popup ยืนยัน
+        // ผ่านทุก validation → เปิด popup
+        setShowConfirm(true);
     };
 
     // ✅ 8. ส่งข้อมูลจริง (หลังจากกดยืนยันใน Popup)
     const confirmAndSubmit = () => {
         setShowConfirm(false);
+
         post(route("employee.store"), {
-            forceFormData: true, // ← สำคัญมาก! บังคับส่งเป็น multipart
+            forceFormData: true,
+
+            // [เพิ่ม] ถ้ามี Error จาก Laravel หลังบ้าน ให้เด้ง Alert และดู Log
+            onError: (err) => {
+                console.log("❌ ข้อผิดพลาดจาก Laravel:", err);
+                alert(
+                    "บันทึกไม่สำเร็จ! กรุณากด F12 ดูช่อง Console ว่าใส่ข้อมูลอะไรผิดหรือขาดไปครับ",
+                );
+            },
+
+            // [เพิ่ม] ถ้าสำเร็จ ให้แจ้งเตือนด้วย
+            onSuccess: () => {
+                // ✅ redirect ไป dashboard หลังบันทึกสำเร็จ
+                window.location.href = route("dashboard");
+            },
         });
     };
 
@@ -301,6 +396,8 @@ export default function Create() {
         const start = new Date(hiredDate);
         const now = new Date();
 
+        if (start > now) return "0 ปี 0 เดือน";
+
         let years = now.getFullYear() - start.getFullYear();
         let months = now.getMonth() - start.getMonth();
         let days = now.getDate() - start.getDate();
@@ -313,6 +410,9 @@ export default function Create() {
             years--;
             months += 12;
         }
+
+        if (years < 0) years = 0;
+        if (months < 0) months = 0;
 
         return `${years} ปี ${months} เดือน`;
     };
@@ -556,7 +656,10 @@ export default function Create() {
                     {/* ✅ คลุมข้อมูลทั้งหมดด้วย <form> */}
                     <form onSubmit={handleInitialSubmit} className="space-y-5">
                         {/* ข้อมูลทั่วไป */}
-                        <div className="bg-white rounded-t-none sm:rounded-t-xl rounded-b-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div
+                            id="section-general"
+                            className="bg-white rounded-t-none sm:rounded-t-xl rounded-b-xl border border-gray-200 shadow-sm overflow-hidden"
+                        >
                             <SectionHeader title="ข้อมูลทั่วไป" />
                             <div className="p-2 py-4 md:p-5 md:py-6">
                                 {/* Grid 3 คอลัมน์ */}
@@ -567,6 +670,11 @@ export default function Create() {
                                         required
                                         value={data.employee.prefix}
                                         options={["นาย", "นาง", "นางสาว"]}
+                                        isRequired
+                                        error={
+                                            localErrors["employee.prefix"] ||
+                                            errors["employee.prefix"]
+                                        }
                                         onChange={(e) => {
                                             updateData(
                                                 "employee",
@@ -580,10 +688,12 @@ export default function Create() {
                                         label="ชื่อภาษาไทย"
                                         required
                                         value={data.employee.first_name_th}
+                                        isRequired
                                         error={
                                             localErrors[
                                                 "employee.first_name_th"
-                                            ]
+                                            ] ||
+                                            errors["employee.first_name_th"]
                                         }
                                         onChange={(e) =>
                                             updateData(
@@ -597,8 +707,11 @@ export default function Create() {
                                         label="นามสกุลภาษาไทย"
                                         required
                                         value={data.employee.last_name_th}
+                                        isRequired
                                         error={
-                                            localErrors["employee.last_name_th"]
+                                            localErrors[
+                                                "employee.last_name_th"
+                                            ] || errors["employee.last_name_th"]
                                         }
                                         onChange={(e) =>
                                             updateData(
@@ -613,7 +726,10 @@ export default function Create() {
                                     <Field
                                         label="ชื่อเล่น"
                                         value={data.employee.nickname}
-                                        error={localErrors["employee.nickname"]}
+                                        error={
+                                            localErrors["employee.nickname"] ||
+                                            errors["employee.nickname"]
+                                        }
                                         onChange={(e) =>
                                             updateData(
                                                 "employee",
@@ -626,10 +742,12 @@ export default function Create() {
                                         label="First Name"
                                         required
                                         value={data.employee.first_name_en}
+                                        isRequired
                                         error={
                                             localErrors[
                                                 "employee.first_name_en"
-                                            ]
+                                            ] ||
+                                            errors["employee.first_name_en"]
                                         }
                                         onChange={(e) =>
                                             updateData(
@@ -641,10 +759,13 @@ export default function Create() {
                                     />
                                     <Field
                                         label="Last Name"
+                                        isRequired
                                         required
                                         value={data.employee.last_name_en}
                                         error={
-                                            localErrors["employee.last_name_en"]
+                                            localErrors[
+                                                "employee.last_name_en"
+                                            ] || errors["employee.last_name_en"]
                                         }
                                         onChange={(e) =>
                                             updateData(
@@ -660,6 +781,7 @@ export default function Create() {
                                         label="วันเกิด"
                                         required
                                         type="date"
+                                        isRequired
                                         value={data.employee.birth_date}
                                         onChange={(e) =>
                                             updateData(
@@ -755,6 +877,11 @@ export default function Create() {
                                     <Field
                                         label="เบอร์โทร"
                                         required
+                                        isRequired
+                                        error={
+                                            localErrors["employee.phone"] ||
+                                            errors["employee.phone"]
+                                        }
                                         value={data.employee.phone}
                                         onChange={(e) =>
                                             updateData(
@@ -804,12 +931,20 @@ export default function Create() {
                         </div>
 
                         {/* ข้อมูลพนักงาน */}
-                        <div className="bg-white rounded-t-none sm:rounded-t-xl rounded-xl border border-gray-200 shadow-sm overflow-hidden ">
+                        <div
+                            id="section-employee"
+                            className="bg-white rounded-t-none sm:rounded-t-xl rounded-xl border border-gray-200 shadow-sm overflow-hidden "
+                        >
                             <SectionHeader title="ข้อมูลพนักงาน" />
                             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 w-full justofy-center gap-y-4 sm:gap-y-7 p-2 py-4 md:p-5 md:py-6">
                                 <Field
                                     label="รหัสพนักงาน"
                                     value={data.employee.employee_code}
+                                    isRequired
+                                    error={
+                                        localErrors["employee.employee_code"] ||
+                                        errors["employee.employee_code"]
+                                    }
                                     onChange={(e) =>
                                         updateData(
                                             "employee",
@@ -820,7 +955,13 @@ export default function Create() {
                                 />
                                 <Field
                                     label="ตำแหน่ง"
+                                    required
                                     value={data.employee.position}
+                                    isRequired
+                                    error={
+                                        localErrors["employee.position"] ||
+                                        errors["employee.position"]
+                                    }
                                     onChange={(e) =>
                                         updateData(
                                             "employee",
@@ -833,6 +974,11 @@ export default function Create() {
                                     label="วันเข้าทำงาน"
                                     type="date"
                                     value={data.employee.hired_date}
+                                    isRequired
+                                    error={
+                                        localErrors["employee.hired_date"] ||
+                                        errors["employee.hired_date"]
+                                    }
                                     onChange={(e) =>
                                         updateData(
                                             "employee",
@@ -884,7 +1030,10 @@ export default function Create() {
                         </div>
 
                         {/* ที่อยู่อาศัย */}
-                        <div className="bg-white rounded-t-none sm:rounded-t-xl rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div
+                            id="section-address"
+                            className="bg-white rounded-t-none sm:rounded-t-xl rounded-xl border border-gray-200 shadow-sm overflow-hidden"
+                        >
                             <SectionHeader title="ที่อยู่อาศัย" />
                             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 w-full justofy-center gap-y-4 sm:gap-y-7 p-2 py-4 md:p-5 md:py-6">
                                 {" "}
@@ -991,7 +1140,10 @@ export default function Create() {
                         </div>
 
                         {/* ข้อมูลติดต่อฉุกเฉิน */}
-                        <div className="bg-white rounded-t-none sm:rounded-t-xl rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div
+                            id="section-emergency"
+                            className="bg-white rounded-t-none sm:rounded-t-xl rounded-xl border border-gray-200 shadow-sm overflow-hidden"
+                        >
                             <SectionHeader title="ข้อมูลติดต่อฉุกเฉิน" />
                             <div className="p-2 py-4 md:p-5 md:py-6">
                                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-4 sm:gap-y-7 gap-y-4 sm:gap-y-7">

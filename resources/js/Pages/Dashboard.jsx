@@ -76,6 +76,7 @@ const ActionDropdown = ({ empId, openId, setOpenId, dropUp }) => {
         },
         {
             label: "เอกสารพนักงาน",
+            href: route("employee.document", empId),
             icon: (
                 <svg
                     className="w-4 h-4"
@@ -468,8 +469,8 @@ export default function Dashboard({ employees }) {
 
                     {/* Table Card */}
                     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden ">
-                        <div className="overflow-x-auto w-full mb-12">
-                            <table className="w-full min-w-[800px]">
+                        <div className="overflow-x-auto w-full mb-12 min-h-[380px]">
+                            <table className="w-full min-w-[800px] ">
                                 <thead>
                                     <tr style={{ backgroundColor: "#75523B" }}>
                                         {[
@@ -504,9 +505,9 @@ export default function Dashboard({ employees }) {
                                         paginated.map((emp, i) => (
                                             <tr
                                                 key={emp.id}
-                                                className={`transition-colors duration-150 hover:bg-amber-50`}
+                                                className={`transition-colors duration-150 hover:bg-amber-50 border-red border`}
                                             >
-                                                <td className="m py-3.5 flex justify-center">
+                                                <td className="py-3.5 flex justify-center h-full">
                                                     <div className="w-16 h-auto lg:w-20 rounded-full overflow-hidden border-2 border-gray-100">
                                                         {emp.prefix === "นาย" ||
                                                         emp.prefix === "Mr." ? (
@@ -542,7 +543,7 @@ export default function Dashboard({ employees }) {
                                                         dropUp={
                                                             i >=
                                                                 paginated.length -
-                                                                    1 &&
+                                                                    2 &&
                                                             paginated.length > 2
                                                         }
                                                     />
