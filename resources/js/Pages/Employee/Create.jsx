@@ -94,6 +94,7 @@ const Field = ({
     options = null,
     error = null,
     isRequired = false,
+    dataField,
 }) => (
     <div className="flex items-center gap-2 w-full ">
         <span
@@ -108,6 +109,7 @@ const Field = ({
             {/* แก้ไข: ลบเงื่อนไข wide และ style ที่เป็น inline ทิ้ง */}
             {options ? (
                 <select
+                    data-field={dataField}
                     value={value}
                     onChange={onChange}
                     className={`w-full text-[14px] xl:text-[16px] border rounded px-2 py-1 text-gray-800 bg-white focus:outline-none focus:ring-1 transition-all ${
@@ -117,6 +119,7 @@ const Field = ({
                     }`}
                 >
                     <option
+                        data-field={dataField}
                         value=""
                         className={` w-full text-[14px] xl:text-[16px] border rounded px-2 py-1 text-gray-800 bg-white focus:outline-none focus:ring-1 transition-all ${
                             error
@@ -134,6 +137,7 @@ const Field = ({
                 </select>
             ) : (
                 <input
+                    data-field={dataField}
                     type={type}
                     value={value}
                     onChange={onChange}
@@ -209,6 +213,7 @@ export default function Create() {
         },
     });
     const [prefix, setPrefix] = useState("");
+    const [docErrors, setDocErrors] = useState({});
     const documentFields = [
         { label: "สำเนาบัตรประชาชน", key: "id_card_path" },
         { label: "สำเนาทะเบียนบ้าน", key: "house_reg_path" },
@@ -269,79 +274,53 @@ export default function Create() {
         setData(category, { ...data[category], [field]: value });
     };
 
-    // ✅ 3. ฟังก์ชันแสดง pop up ถ้าข้อมูลกรอกไม่ครบ
+    // ✅ 3. ฟังก์ชันตรวจสอบว่ากรอกรึยัง ถ้าไม่ครบจะเด้งขึ้นให้ไปกรอก
+    // ถ้ากรอกครบจะมี popup ให้กดยืนยัน
     const handleInitialSubmit = (e) => {
         e.preventDefault();
 
-        let newErrors = { ...localErrors };
-        let hasEmptyRequired = false;
+        const newErrors = { ...localErrors };
 
         requiredFields.forEach(({ category, field, name }) => {
             const value = data[category][field];
             if (!value || value.toString().trim() === "") {
                 newErrors[`${category}.${field}`] = `กรุณากรอก${name}`;
-                hasEmptyRequired = true;
             }
         });
 
         setLocalErrors(newErrors);
 
-        const hasErrors = Object.values(newErrors).some((err) => err !== null);
+        const hasErrors = Object.values(newErrors).some(Boolean);
 
         if (hasErrors) {
-            // หา section แรกที่มี error แล้ว scroll ไป
             setTimeout(() => {
-                const sectionMap = {
-                    "section-general": [
-                        "employee.prefix",
-                        "employee.first_name_th",
-                        "employee.last_name_th",
-                        "employee.first_name_en",
-                        "employee.last_name_en",
-                        "employee.birth_date",
-                        "employee.phone",
-                        "identity.id_card_number",
-                    ],
-                    "section-employee": [
-                        "employee.employee_code",
-                        "employee.position",
-                        "employee.hired_date",
-                    ],
-                    "section-address": [
-                        "address.house_no",
-                        "address.sub_district",
-                        "address.district",
-                        "address.province",
-                        "address.zipcode",
-                    ],
-                    "section-emergency": [
-                        "emergency.name",
-                        "emergency.relationship",
-                        "emergency.phone",
-                        "emergency.full_address",
-                    ],
-                };
+                // หา element จริงๆ ทุกตัวที่มี error แล้วเรียงตาม position บนหน้า
+                const errorElements = Object.keys(newErrors)
+                    .filter((key) => newErrors[key])
+                    .map((key) => {
+                        const [category, field] = key.split(".");
+                        // หา input/select ที่ตรงกับ field นั้นจริงๆ
+                        return document.querySelector(
+                            `[data-field="${category}.${field}"]`,
+                        );
+                    })
+                    .filter(Boolean); // กัน null
 
-                // หา section แรกที่มี error
-                const firstSection = Object.entries(sectionMap).find(
-                    ([, fields]) => fields.some((key) => newErrors[key]),
+                if (errorElements.length === 0) return;
+
+                // เรียงตาม top position แล้วเอาอันบนสุด
+                const topmost = errorElements.reduce((prev, curr) =>
+                    prev.getBoundingClientRect().top <
+                    curr.getBoundingClientRect().top
+                        ? prev
+                        : curr,
                 );
 
-                if (firstSection) {
-                    const el = document.getElementById(firstSection[0]);
-                    if (el) {
-                        el.scrollIntoView({
-                            behavior: "smooth",
-                            block: "start",
-                        });
-                    }
-                }
+                topmost.scrollIntoView({ behavior: "smooth", block: "center" });
             }, 100);
 
             return;
         }
-
-        // ผ่านทุก validation → เปิด popup
         setShowConfirm(true);
     };
 
@@ -355,9 +334,7 @@ export default function Create() {
             // [เพิ่ม] ถ้ามี Error จาก Laravel หลังบ้าน ให้เด้ง Alert และดู Log
             onError: (err) => {
                 console.log("❌ ข้อผิดพลาดจาก Laravel:", err);
-                alert(
-                    "บันทึกไม่สำเร็จ! กรุณากด F12 ดูช่อง Console ว่าใส่ข้อมูลอะไรผิดหรือขาดไปครับ",
-                );
+                alert("บันทึกไม่สำเร็จ!");
             },
 
             // [เพิ่ม] ถ้าสำเร็จ ให้แจ้งเตือนด้วย
@@ -667,7 +644,7 @@ export default function Create() {
                                     {/* แถว 1 */}
                                     <Field
                                         label="คำนำหน้า"
-                                        required
+                                        dataField="employee.prefix"
                                         value={data.employee.prefix}
                                         options={["นาย", "นาง", "นางสาว"]}
                                         isRequired
@@ -686,7 +663,7 @@ export default function Create() {
                                     />
                                     <Field
                                         label="ชื่อภาษาไทย"
-                                        required
+                                        dataField="employee.first_name_th"
                                         value={data.employee.first_name_th}
                                         isRequired
                                         error={
@@ -705,8 +682,8 @@ export default function Create() {
                                     />
                                     <Field
                                         label="นามสกุลภาษาไทย"
-                                        required
                                         value={data.employee.last_name_th}
+                                        dataField="employee.last_name_th"
                                         isRequired
                                         error={
                                             localErrors[
@@ -740,8 +717,8 @@ export default function Create() {
                                     />
                                     <Field
                                         label="First Name"
-                                        required
                                         value={data.employee.first_name_en}
+                                        dataField="employee.first_name_en"
                                         isRequired
                                         error={
                                             localErrors[
@@ -760,8 +737,8 @@ export default function Create() {
                                     <Field
                                         label="Last Name"
                                         isRequired
-                                        required
                                         value={data.employee.last_name_en}
+                                        dataField="employee.last_name_en"
                                         error={
                                             localErrors[
                                                 "employee.last_name_en"
@@ -779,10 +756,15 @@ export default function Create() {
                                     {/* แถว 3 */}
                                     <Field
                                         label="วันเกิด"
-                                        required
                                         type="date"
                                         isRequired
                                         value={data.employee.birth_date}
+                                        dataField="employee.birth_date"
+                                        error={
+                                            localErrors[
+                                                "employee.birth_date"
+                                            ] || errors["employee.birth_date"]
+                                        }
                                         onChange={(e) =>
                                             updateData(
                                                 "employee",
@@ -876,8 +858,8 @@ export default function Create() {
                                     />
                                     <Field
                                         label="เบอร์โทร"
-                                        required
                                         isRequired
+                                        dataField="employee.phone"
                                         error={
                                             localErrors["employee.phone"] ||
                                             errors["employee.phone"]
@@ -940,6 +922,7 @@ export default function Create() {
                                 <Field
                                     label="รหัสพนักงาน"
                                     value={data.employee.employee_code}
+                                    dataField="employee.employee_code"
                                     isRequired
                                     error={
                                         localErrors["employee.employee_code"] ||
@@ -955,8 +938,8 @@ export default function Create() {
                                 />
                                 <Field
                                     label="ตำแหน่ง"
-                                    required
                                     value={data.employee.position}
+                                    dataField="employee.position"
                                     isRequired
                                     error={
                                         localErrors["employee.position"] ||
@@ -974,6 +957,7 @@ export default function Create() {
                                     label="วันเข้าทำงาน"
                                     type="date"
                                     value={data.employee.hired_date}
+                                    dataField="employee.hired_date"
                                     isRequired
                                     error={
                                         localErrors["employee.hired_date"] ||
@@ -1220,48 +1204,123 @@ export default function Create() {
                                             {field.label}
                                         </span>
 
-                                        {/* ตัวครอบช่อง Input และปุ่ม */}
-                                        <div className="flex w-[400px] border border-gray-300 rounded-lg shadow-sm bg-white overflow-hidden h-10 shadow-[0_4px_4px_0_rgba(0,0,0,0.25)]">
-                                            {/* ฝั่งซ้าย: แสดงชื่อไฟล์ */}
-                                            <span className="flex-1 px-3 py-2 text-[14px] text-gray-600 truncate flex items-center ">
-                                                {data.documents[field.key]
-                                                    ?.name || ""}
-                                            </span>
-                                            {data.documents[field.key] && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        setData("documents", {
-                                                            ...data.documents,
-                                                            [field.key]: null,
-                                                        })
-                                                    }
-                                                    className="pl-1 flex items-center justify-center transition-opacity hover:opacity-70"
-                                                    title="ลบไฟล์"
-                                                >
-                                                    <img
-                                                        src={close}
-                                                        alt="remove"
-                                                        className="w-3 h-3 mr-3" // ปรับขนาดรูปได้ที่นี่ (w-3, h-3 คือ 12px)
-                                                    />
-                                                </button>
-                                            )}{" "}
-                                            {/* ฝั่งขวา: ปุ่มอัปโหลด */}
-                                            <label className=" text-[15px] cursor-pointer px-2 sm:px-4 bg-gray-100 text-gray-700 text-xs font-medium border-l rounded-lg rounded- border-gray-300 hover:bg-gray-200 transition-colors flex items-center ">
-                                                อัปโหลด
-                                                <input
-                                                    type="file"
-                                                    className="hidden "
-                                                    onChange={(e) =>
-                                                        setData("documents", {
-                                                            ...data.documents,
-                                                            [field.key]:
+                                        <div className="flex flex-col gap-1">
+                                            {/* ตัวครอบช่อง Input และปุ่ม */}
+                                            <div className="flex w-[400px] border border-gray-300 rounded-lg shadow-sm bg-white overflow-hidden h-10 shadow-[0_4px_4px_0_rgba(0,0,0,0.25)]">
+                                                {/* ฝั่งซ้าย: แสดงชื่อไฟล์ */}
+                                                <span className="flex-1 px-3 py-2 text-[14px] text-gray-600 truncate flex items-center">
+                                                    {data.documents[field.key]
+                                                        ?.name || ""}
+                                                </span>
+
+                                                {data.documents[field.key] && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setData(
+                                                                "documents",
+                                                                {
+                                                                    ...data.documents,
+                                                                    [field.key]:
+                                                                        null,
+                                                                },
+                                                            );
+                                                            // ล้าง error ด้วยเมื่อลบไฟล์
+                                                            setDocErrors(
+                                                                (prev) => ({
+                                                                    ...prev,
+                                                                    [field.key]:
+                                                                        null,
+                                                                }),
+                                                            );
+                                                        }}
+                                                        className="pl-1 flex items-center justify-center transition-opacity hover:opacity-70"
+                                                        title="ลบไฟล์"
+                                                    >
+                                                        <img
+                                                            src={close}
+                                                            alt="remove"
+                                                            className="w-3 h-3 mr-3"
+                                                        />
+                                                    </button>
+                                                )}
+
+                                                {/* ฝั่งขวา: ปุ่มอัปโหลด */}
+                                                <label className="text-[15px] cursor-pointer px-2 sm:px-4 bg-gray-100 text-gray-700 text-xs font-medium border-l rounded-lg border-gray-300 hover:bg-gray-200 transition-colors flex items-center">
+                                                    อัปโหลด
+                                                    <input
+                                                        type="file"
+                                                        accept=".pdf"
+                                                        className="hidden"
+                                                        onChange={(e) => {
+                                                            const file =
                                                                 e.target
-                                                                    .files[0],
-                                                        })
-                                                    }
-                                                />
-                                            </label>
+                                                                    .files[0];
+                                                            if (!file) return;
+
+                                                            // ตรวจสอบประเภทไฟล์
+                                                            if (
+                                                                file.type !==
+                                                                "application/pdf"
+                                                            ) {
+                                                                setDocErrors(
+                                                                    (prev) => ({
+                                                                        ...prev,
+                                                                        [field.key]:
+                                                                            "รองรับเฉพาะไฟล์ PDF เท่านั้น",
+                                                                    }),
+                                                                );
+                                                                e.target.value =
+                                                                    "";
+                                                                return;
+                                                            }
+
+                                                            // ตรวจสอบขนาด 5MB
+                                                            const maxSize =
+                                                                5 * 1024 * 1024;
+                                                            if (
+                                                                file.size >
+                                                                maxSize
+                                                            ) {
+                                                                setDocErrors(
+                                                                    (prev) => ({
+                                                                        ...prev,
+                                                                        [field.key]:
+                                                                            "ขนาดไฟล์ต้องไม่เกิน 5MB",
+                                                                    }),
+                                                                );
+                                                                e.target.value =
+                                                                    "";
+                                                                return;
+                                                            }
+
+                                                            // ผ่านทุกเงื่อนไข → ล้าง error และเซ็ตไฟล์
+                                                            setDocErrors(
+                                                                (prev) => ({
+                                                                    ...prev,
+                                                                    [field.key]:
+                                                                        null,
+                                                                }),
+                                                            );
+                                                            setData(
+                                                                "documents",
+                                                                {
+                                                                    ...data.documents,
+                                                                    [field.key]:
+                                                                        file,
+                                                                },
+                                                            );
+                                                        }}
+                                                    />
+                                                </label>
+                                            </div>
+
+                                            {/* ข้อความ error ใต้ field */}
+                                            {docErrors[field.key] && (
+                                                <p className="text-red-500 text-xs ml-1">
+                                                    {docErrors[field.key]}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                 ))}
