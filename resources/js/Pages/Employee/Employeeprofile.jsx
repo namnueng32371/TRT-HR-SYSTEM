@@ -1,6 +1,6 @@
 import { Link } from "@inertiajs/react";
-
 import TRTLogo from "../../../../public/images/logo.png";
+import { useState } from "react";
 
 const AvatarDefault = () => (
     <svg
@@ -57,13 +57,13 @@ const AvatarFemale = () => (
         />
     </svg>
 );
-// Section header component
+//หัวตารางของแต่ละ ตารางเช่น ข้อมูลทั่วไป
 const SectionHeader = ({ title }) => (
     <div
-        className="px-5 py-3 rounded-t-xl"
+        className="px-5 py-3 rounded-t-none sm:rounded-t-xl"
         style={{ backgroundColor: "#75523B" }}
     >
-        <h3 className="text-white font-medium text-sm">{title}</h3>
+        <h3 className="text-white font-medium text-[16px]">{title}</h3>
     </div>
 );
 
@@ -88,6 +88,8 @@ const Field = ({ label, value }) => (
 );
 
 export default function EmployeeProfile({ employee }) {
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
     const calculateAge = (birthDate) => {
         if (!birthDate) return "";
         const today = new Date();
@@ -134,7 +136,23 @@ export default function EmployeeProfile({ employee }) {
     return (
         <div className="flex h-screen overflow-hidden bg-gray-50">
             {/* Sidebar */}
-            <aside className="w-52 flex flex-col flex-shrink-0 bg-white border-r border-gray-200 shadow-sm">
+            {sidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/40 z-20 xl:hidden"
+                    onClick={() => setSidebarOpen(false)}
+                />
+            )}
+            {/* Sidebar */}
+            <aside
+                className={`
+                    fixed xl:static inset-y-0 left-0 z-30
+                    w-52 flex flex-col flex-shrink-0 bg-white border-r border-gray-200 shadow-sm
+                    transition-transform duration-300 ease-in-out
+                    ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+                    xl:translate-x-0
+                          `}
+            >
+                {" "}
                 <div className="flex items-center justify-center py-6 px-4 border-b border-gray-100">
                     <img src={TRTLogo} alt="TRT Logo" className="w-32" />
                 </div>
@@ -202,13 +220,55 @@ export default function EmployeeProfile({ employee }) {
 
             {/* Main */}
             <div className="flex-1 flex flex-col overflow-hidden">
+                <div
+                    className={`static xl:fixed -top-full  
+                                px-5 bg-gray-50 h-20 flex items-center gap-2 
+                                transition-transform duration-300 ease-in-out
+                                
+                        `}
+                >
+                    {" "}
+                    {/* ปุ่ม hamburger — แสดงเฉพาะ < 1280px */}
+                    <button
+                        onClick={() => setSidebarOpen(!sidebarOpen)}
+                        className="static xl:hidden text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
+                    >
+                        <svg
+                            className="w-6 h-6"
+                            fill="none"
+                            stroke="black"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M4 6h16M4 12h16M4 18h16"
+                            />
+                        </svg>
+                    </button>
+                    <img
+                        src={TRTLogo}
+                        alt="TRT Logo"
+                        className="
+                        self-center origin-center
+                        transition-all duration-500 ease-in-out
+                        
+                        /* สถานะตอนจอเล็ก (แสดงผลปกติ) */
+                        w-20 opacity-100 scale-100
+                        
+                        /* สถานะตอนจอใหญ่ xl (ค่อยๆ จางและหดหายไป) */
+                        xl:opacity-0 xl:scale-50 xl:w-0 xl:m-0 xl:pointer-events-none
+                    "
+                    />
+                </div>
                 <header
-                    className="h-16 flex-shrink-0"
+                    className="h-10 xl:h-16 flex-shrink-0 flex items-center px-4"
                     style={{ backgroundColor: "#75523B" }}
-                />
+                ></header>
 
-                <main className="flex-1 overflow-auto p-6">
-                    <h2 className="text-lg font-bold text-gray-800 mb-5">
+                <main className="flex-1 overflow-auto p-0 sm:p-6">
+                    <h2 className="text-xl md:text-2xl px-4 pt-4 sm:px-0 sm:pt-0 font-bold text-gray-800 mb-5">
                         ข้อมูลส่วนตัว
                     </h2>
 
@@ -225,10 +285,11 @@ export default function EmployeeProfile({ employee }) {
 
                     <div className="space-y-5">
                         {/* ข้อมูลทั่วไป */}
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div className="bg-white rounded-t-none sm:rounded-t-xl rounded-b-xl border border-gray-200 shadow-sm overflow-hidden">
                             <SectionHeader title="ข้อมูลทั่วไป" />
-                            <div className="p-5">
-                                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-7">
+                            <div className="p-2 py-4 md:p-5 md:py-6">
+                                {" "}
+                                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-4 sm:gap-y-7">
                                     <Field
                                         label="คำนำหน้า"
                                         value={employee.prefix}
@@ -302,9 +363,9 @@ export default function EmployeeProfile({ employee }) {
                                     />
                                 </div>
                                 {/* โรคประจำตัว full width */}
-                                <div className="flex items-center gap-2 mt-7">
+                                <div className="flex items-center gap-2 mt-5 sm:mt-7 w-full">
                                     <span
-                                        className="text-[14px] xl:text-[16px] text-gray-600 whitespace-nowrap"
+                                        className="text-[14px] xl:text-[16px] text-gray-600 whitespace-nowrap text-right"
                                         style={{ minWidth: "120px" }}
                                     >
                                         โรคประจำตัว
@@ -315,16 +376,16 @@ export default function EmployeeProfile({ employee }) {
                                             employee.medical_condition
                                         }
                                         readOnly
-                                        className="flex-1 border border-gray-300 rounded px-2 py-1 text-[14px] xl:text-[16px] text-gray-800 bg-white focus:outline-none"
+                                        className="w-full border border-gray-300 rounded px-2 py-1 text-[14px] xl:text-[16px] text-gray-800 bg-white focus:outline-none"
                                     />
                                 </div>
                             </div>
                         </div>
 
                         {/* ข้อมูลพนักงาน */}
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div className="bg-white rounded-t-none sm:rounded-t-xl rounded-b-xl border border-gray-200 shadow-sm overflow-hidden">
                             <SectionHeader title="ข้อมูลพนักงาน" />
-                            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-7 p-5">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 w-full justofy-center gap-y-4 sm:gap-y-7 p-2 py-4 md:p-5 md:py-6 ">
                                 <Field
                                     label="รหัสพนักงาน"
                                     value={employee.employee_code}
@@ -353,9 +414,9 @@ export default function EmployeeProfile({ employee }) {
                         </div>
 
                         {/* ที่อยู่อาศัย */}
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div className="bg-white rounded-t-none sm:rounded-t-xl rounded-b-xl border border-gray-200 shadow-sm overflow-hidden">
                             <SectionHeader title="ที่อยู่อาศัย" />
-                            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-7 p-5">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-4 sm:gap-y-7 p-2 py-4 md:p-5 md:py-6 ">
                                 <Field
                                     label="บ้านเลขที่"
                                     value={employee.addresses?.[0]?.house_no}
@@ -400,10 +461,10 @@ export default function EmployeeProfile({ employee }) {
                         </div>
 
                         {/* ข้อมูลติดต่อฉุกเฉิน */}
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div className="bg-white rounded-t-none sm:rounded-t-xl rounded-b-xl border border-gray-200 shadow-sm overflow-hidden">
                             <SectionHeader title="ข้อมูลติดต่อฉุกเฉิน" />
-                            <div className="p-5 space-y-7">
-                                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-7">
+                            <div className="p-2 py-4 md:p-5 md:py-6 space-y-4 sm:space-y-7">
+                                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-4 sm:gap-y-7">
                                     <Field
                                         label="ชื่อ-นามสกุล"
                                         value={
@@ -426,6 +487,7 @@ export default function EmployeeProfile({ employee }) {
                                         }
                                     />
                                 </div>
+
                                 {/* ที่อยู่ full width */}
                                 <div className="flex items-center gap-2">
                                     <span
@@ -449,7 +511,7 @@ export default function EmployeeProfile({ employee }) {
                     </div>
 
                     {/* ปุ่มย้อนกลับ */}
-                    <div className="flex justify-end mt-6">
+                    <div className="flex justify-end mt-6 pb-8 pr-2 sm:pr-0">
                         <button
                             onClick={() => window.history.back()}
                             className="px-6 py-2.5 rounded-lg text-sm font-medium text-gray-700 border border-gray-300 bg-white hover:bg-gray-50 active:scale-95 transition-all duration-200"

@@ -2,6 +2,12 @@ import { Link, useForm } from "@inertiajs/react";
 import { useState } from "react";
 import TRTLogo from "../../../../public/images/logo.png";
 import close from "../../../../public/images/icon/close.png";
+// import DatePicker, { registerLocale } from "react-datepicker";
+// import "react-datepicker/dist/react-datepicker.css";
+// import { th } from "date-fns/locale"; // เอาไว้ทำปฏิทินภาษาไทย
+// import { format } from "date-fns";
+
+// registerLocale("th", th); // ลงทะเบียนภาษาไทยให้ปฏิทิน
 
 const AvatarDefault = () => (
     <svg
@@ -62,7 +68,7 @@ const AvatarFemale = () => (
 //หัวตารางของแต่ละ ตารางเช่น ข้อมูลทั่วไป
 const SectionHeader = ({ title }) => (
     <div
-        className="px-5 py-3 rounded-t-xl"
+        className="px-5 py-3 rounded-t-none sm:rounded-t-xl"
         style={{ backgroundColor: "#75523B" }}
     >
         <h3 className="text-white font-medium text-[16px]">{title}</h3>
@@ -73,7 +79,7 @@ const SectionHeader = ({ title }) => (
 const ErrorText = ({ error }) => {
     if (!error) return null;
     return (
-        <p className="text-red-500 text-xs absolute -bottom-5 left-0 whitespace-nowrap">
+        <p className="text-red-500 text-xs absolute -bottom-4 sm:-bottom-5 right-0 sm:left-0 whitespace-nowrap">
             {error}
         </p>
     );
@@ -87,16 +93,23 @@ const Field = ({
     type = "text",
     options = null,
     error = null,
+    isRequired = false,
+    dataField,
 }) => (
-    <div className="flex items-center gap-2 w-full">
-        <span className="text-[14px] xl:text-[16px] text-gray-600 whitespace-nowrap">
+    <div className="flex items-center gap-2 w-full ">
+        <span
+            className="text-[14px] xl:text-[16px] text-gray-600 whitespace-nowrap text-right"
+            style={{ minWidth: "120px" }}
+        >
             {label}
+            {isRequired && <span className="text-red-500">*</span>}
         </span>
 
         <div className="relative flex-1">
             {/* แก้ไข: ลบเงื่อนไข wide และ style ที่เป็น inline ทิ้ง */}
             {options ? (
                 <select
+                    data-field={dataField}
                     value={value}
                     onChange={onChange}
                     className={`w-full text-[14px] xl:text-[16px] border rounded px-2 py-1 text-gray-800 bg-white focus:outline-none focus:ring-1 transition-all ${
@@ -105,7 +118,17 @@ const Field = ({
                             : "border-gray-300 focus:ring-[#B3702A]"
                     }`}
                 >
-                    <option value="">- เลือก -</option>
+                    <option
+                        data-field={dataField}
+                        value=""
+                        className={` w-full text-[14px] xl:text-[16px] border rounded px-2 py-1 text-gray-800 bg-white focus:outline-none focus:ring-1 transition-all ${
+                            error
+                                ? "border-red-500 focus:ring-red-500"
+                                : "border-gray-300 focus:ring-[#B3702A]"
+                        }`}
+                    >
+                        - เลือก -
+                    </option>
                     {options.map((opt) => (
                         <option key={opt} value={opt}>
                             {opt}
@@ -114,6 +137,7 @@ const Field = ({
                 </select>
             ) : (
                 <input
+                    data-field={dataField}
                     type={type}
                     value={value}
                     onChange={onChange}
@@ -132,9 +156,10 @@ const Field = ({
 export default function Create() {
     const [localErrors, setLocalErrors] = useState({});
     const [showConfirm, setShowConfirm] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     // ใช้ useForm ซึ่งเป็น ปลั๊กอินของ Intertia โดยจะส่งข้อมูลไฟเป็น JSON ให้ที่ route
     // data ตัวแปรเก็บข้อมูล , ส่วน setData post processing เป็นฟังก์ชัน โดยเป็น class ที่ Intertia กำหนดไว้
-    const { data, setData, post, processing, clearErrors } = useForm({
+    const { data, setData, post, processing, errors, clearErrors } = useForm({
         employee: {
             employee_code: "",
             prefix: "",
@@ -150,6 +175,7 @@ export default function Create() {
             blood_group: "",
             medical_condition: "",
             hired_date: "",
+            profile_image: null,
         },
         identity: {
             id_card_number: "",
@@ -187,6 +213,7 @@ export default function Create() {
         },
     });
     const [prefix, setPrefix] = useState("");
+    const [docErrors, setDocErrors] = useState({});
     const documentFields = [
         { label: "สำเนาบัตรประชาชน", key: "id_card_path" },
         { label: "สำเนาทะเบียนบ้าน", key: "house_reg_path" },
@@ -195,6 +222,19 @@ export default function Create() {
         { label: "วุฒิการศึกษา", key: "transcript_path" },
         { label: "ชุดสมัคร", key: "application_form_path" },
         { label: "เอกสารอื่นๆ", key: "other_docs_path" },
+    ];
+
+    const requiredFields = [
+        { category: "employee", field: "prefix", name: "คำนำหน้า" },
+        { category: "employee", field: "first_name_th", name: "ชื่อภาษาไทย" },
+        { category: "employee", field: "last_name_th", name: "นามสกุลภาษาไทย" },
+        { category: "employee", field: "first_name_en", name: "First Name" },
+        { category: "employee", field: "last_name_en", name: "Last Name" },
+        { category: "employee", field: "birth_date", name: "วันเกิด" },
+        { category: "employee", field: "employee_code", name: "รหัสพนักงาน" },
+        { category: "employee", field: "position", name: "ตำแหน่ง" },
+        { category: "employee", field: "hired_date", name: "วันเข้าทำงาน" },
+        { category: "employee", field: "phone", name: "เบอร์โทร" },
     ];
 
     const thaiRegex = /^[ก-๙\s]*$/; // ยอมรับเฉพาะ ก-ฮ และช่องว่าง
@@ -234,27 +274,75 @@ export default function Create() {
         setData(category, { ...data[category], [field]: value });
     };
 
-    // ✅ 3. ฟังก์ชันตอนกดส่งฟอร์ม
+    // ✅ 3. ฟังก์ชันตรวจสอบว่ากรอกรึยัง ถ้าไม่ครบจะเด้งขึ้นให้ไปกรอก
+    // ถ้ากรอกครบจะมี popup ให้กดยืนยัน
     const handleInitialSubmit = (e) => {
         e.preventDefault();
 
-        // เช็คว่ามี Error แดงๆ ค้างอยู่ไหม ถ้ามีไม่ยอมให้ส่ง
-        const hasErrors = Object.values(localErrors).some(
-            (err) => err !== null,
-        );
-        // ถ้ามี
+        const newErrors = { ...localErrors };
+
+        requiredFields.forEach(({ category, field, name }) => {
+            const value = data[category][field];
+            if (!value || value.toString().trim() === "") {
+                newErrors[`${category}.${field}`] = `กรุณากรอก${name}`;
+            }
+        });
+
+        setLocalErrors(newErrors);
+
+        const hasErrors = Object.values(newErrors).some(Boolean);
+
         if (hasErrors) {
-            alert("กรุณาแก้ไขข้อมูลที่ผิดพลาด (สีแดง) ให้ถูกต้องก่อนบันทึก");
+            setTimeout(() => {
+                // หา element จริงๆ ทุกตัวที่มี error แล้วเรียงตาม position บนหน้า
+                const errorElements = Object.keys(newErrors)
+                    .filter((key) => newErrors[key])
+                    .map((key) => {
+                        const [category, field] = key.split(".");
+                        // หา input/select ที่ตรงกับ field นั้นจริงๆ
+                        return document.querySelector(
+                            `[data-field="${category}.${field}"]`,
+                        );
+                    })
+                    .filter(Boolean); // กัน null
+
+                if (errorElements.length === 0) return;
+
+                // เรียงตาม top position แล้วเอาอันบนสุด
+                const topmost = errorElements.reduce((prev, curr) =>
+                    prev.getBoundingClientRect().top <
+                    curr.getBoundingClientRect().top
+                        ? prev
+                        : curr,
+                );
+
+                topmost.scrollIntoView({ behavior: "smooth", block: "center" });
+            }, 100);
+
             return;
         }
-
-        setShowConfirm(true); // เปิด Popup ยืนยัน
+        setShowConfirm(true);
     };
 
     // ✅ 8. ส่งข้อมูลจริง (หลังจากกดยืนยันใน Popup)
     const confirmAndSubmit = () => {
         setShowConfirm(false);
-        post(route("employee.store"));
+
+        post(route("employee.store"), {
+            forceFormData: true,
+
+            // [เพิ่ม] ถ้ามี Error จาก Laravel หลังบ้าน ให้เด้ง Alert และดู Log
+            onError: (err) => {
+                console.log("❌ ข้อผิดพลาดจาก Laravel:", err);
+                alert("บันทึกไม่สำเร็จ!");
+            },
+
+            // [เพิ่ม] ถ้าสำเร็จ ให้แจ้งเตือนด้วย
+            onSuccess: () => {
+                // ✅ redirect ไป dashboard หลังบันทึกสำเร็จ
+                window.location.href = route("dashboard");
+            },
+        });
     };
 
     const calculateAge = (birthDate) => {
@@ -285,6 +373,8 @@ export default function Create() {
         const start = new Date(hiredDate);
         const now = new Date();
 
+        if (start > now) return "0 ปี 0 เดือน";
+
         let years = now.getFullYear() - start.getFullYear();
         let months = now.getMonth() - start.getMonth();
         let days = now.getDate() - start.getDate();
@@ -298,13 +388,30 @@ export default function Create() {
             months += 12;
         }
 
+        if (years < 0) years = 0;
+        if (months < 0) months = 0;
+
         return `${years} ปี ${months} เดือน`;
     };
 
     return (
         <div className="flex h-screen overflow-hidden bg-gray-50">
-            {/* Sidebar (เหมือนเดิมเป๊ะ) */}
-            <aside className="w-52 flex flex-col flex-shrink-0 bg-white border-r border-gray-200 shadow-sm">
+            {/* Sidebar */}
+            {sidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/40 z-20 xl:hidden"
+                    onClick={() => setSidebarOpen(false)}
+                />
+            )}
+            <aside
+                className={`
+                    fixed xl:static inset-y-0 left-0 z-30
+                    w-72 flex flex-col flex-shrink-0 bg-white border-r border-gray-200 shadow-sm
+                    transition-transform duration-300 ease-in-out
+                    ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+                    xl:translate-x-0
+                          `}
+            >
                 <div className="flex items-center justify-center py-6 px-4 border-b border-gray-100">
                     <img src={TRTLogo} alt="TRT Logo" className="w-32" />
                 </div>
@@ -353,24 +460,172 @@ export default function Create() {
 
             {/* Main */}
             <div className="flex-1 flex flex-col overflow-hidden">
+                <div
+                    className={`static xl:fixed -top-full  
+                                px-5 bg-gray-50 h-20 flex items-center gap-2 
+                                transition-transform duration-300 ease-in-out
+                                
+                        `}
+                >
+                    {" "}
+                    {/* ปุ่ม hamburger — แสดงเฉพาะ < 1280px */}
+                    <button
+                        onClick={() => setSidebarOpen(!sidebarOpen)}
+                        className="static xl:hidden text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
+                    >
+                        <svg
+                            className="w-6 h-6"
+                            fill="none"
+                            stroke="black"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M4 6h16M4 12h16M4 18h16"
+                            />
+                        </svg>
+                    </button>
+                    <img
+                        src={TRTLogo}
+                        alt="TRT Logo"
+                        className="
+                        self-center origin-center
+                        transition-all duration-500 ease-in-out
+                        
+                        /* สถานะตอนจอเล็ก (แสดงผลปกติ) */
+                        w-20 opacity-100 scale-100
+                        
+                        /* สถานะตอนจอใหญ่ xl (ค่อยๆ จางและหดหายไป) */
+                        xl:opacity-0 xl:scale-50 xl:w-0 xl:m-0 xl:pointer-events-none
+                    "
+                    />
+                </div>
                 <header
-                    className="h-16 flex-shrink-0"
+                    className="h-10 xl:h-16 flex-shrink-0 flex items-center px-4"
                     style={{ backgroundColor: "#75523B" }}
-                />
+                ></header>
 
-                <main className="flex-1 overflow-auto p-6">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-5">
+                <main className="flex-1 overflow-auto p-0 sm:p-6">
+                    <h2 className="text-xl md:text-2xl px-4 pt-4 sm:px-0 sm:pt-0 font-bold text-gray-800 mb-5">
                         สร้างข้อมูล
                     </h2>
 
+                    {/* Avatar + ปุ่มอัปโหลด */}
                     <div className="flex justify-center mb-6">
-                        <div className="w-28 h-28 rounded-lg overflow-hidden border-2 border-gray-200 shadow-sm">
-                            {prefix === "นาย" ? (
-                                <AvatarMale />
-                            ) : prefix === "นาง" || prefix === "นางสาว" ? (
-                                <AvatarFemale />
-                            ) : (
-                                <AvatarDefault />
+                        <div className="relative w-28 h-28">
+                            {/* รูป Avatar */}
+                            <div className="w-28 h-28 rounded-lg overflow-hidden border-2 border-gray-200 shadow-sm">
+                                {data.employee.profile_image ? (
+                                    // ถ้ามีรูปที่เลือกแล้ว → แสดงรูป preview
+                                    <img
+                                        src={URL.createObjectURL(
+                                            data.employee.profile_image,
+                                        )}
+                                        alt="profile"
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : prefix === "นาย" ? (
+                                    <AvatarMale />
+                                ) : prefix === "นาง" || prefix === "นางสาว" ? (
+                                    <AvatarFemale />
+                                ) : (
+                                    <AvatarDefault />
+                                )}
+                            </div>
+
+                            {/* ปุ่มกล้อง — วางมุมขวาล่าง */}
+                            <label className="absolute bottom-1 right-1 w-7 h-7 rounded-full bg-white border border-gray-300 shadow flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
+                                <svg
+                                    className="w-4 h-4 text-gray-500"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                                    />
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                                    />
+                                </svg>
+
+                                {/* input ซ่อนไว้ */}
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                        const file = e.target.files[0];
+                                        if (!file) return;
+
+                                        // จำกัดขนาด 2MB
+                                        const maxSize = 2 * 1024 * 1024; // 2MB เป็น bytes
+                                        if (file.size > maxSize) {
+                                            alert(
+                                                "รูปภาพต้องมีขนาดไม่เกิน 2MB",
+                                            );
+                                            e.target.value = ""; // reset input
+                                            return;
+                                        }
+
+                                        // ✅ ตรวจสอบประเภทไฟล์
+                                        const allowedTypes = [
+                                            "image/jpeg",
+                                            "image/png",
+                                            "image/webp",
+                                        ];
+                                        if (!allowedTypes.includes(file.type)) {
+                                            alert(
+                                                "รองรับเฉพาะไฟล์ .jpg .png .webp เท่านั้น",
+                                            );
+                                            e.target.value = "";
+                                            return;
+                                        }
+
+                                        // ...data.employee กล่องเก็บข้อมูลพนังงาน
+                                        // และ , บอกว่าเราจะเก็บไฟล์ file ไปใน profile_image นะ
+                                        setData("employee", {
+                                            ...data.employee,
+                                            profile_image: file,
+                                        });
+                                    }}
+                                />
+                            </label>
+
+                            {/* ปุ่มลบรูป — แสดงเมื่อมีรูป */}
+                            {data.employee.profile_image && (
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setData("employee", {
+                                            ...data.employee,
+                                            profile_image: null,
+                                        })
+                                    }
+                                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center hover:bg-red-600 transition-colors"
+                                >
+                                    <svg
+                                        className="w-3 h-3 text-white"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2.5}
+                                            d="M6 18L18 6M6 6l12 12"
+                                        />
+                                    </svg>
+                                </button>
                             )}
                         </div>
                     </div>
@@ -378,17 +633,25 @@ export default function Create() {
                     {/* ✅ คลุมข้อมูลทั้งหมดด้วย <form> */}
                     <form onSubmit={handleInitialSubmit} className="space-y-5">
                         {/* ข้อมูลทั่วไป */}
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div
+                            id="section-general"
+                            className="bg-white rounded-t-none sm:rounded-t-xl rounded-b-xl border border-gray-200 shadow-sm overflow-hidden"
+                        >
                             <SectionHeader title="ข้อมูลทั่วไป" />
-                            <div className="p-5">
+                            <div className="p-2 py-4 md:p-5 md:py-6">
                                 {/* Grid 3 คอลัมน์ */}
-                                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-7">
+                                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-4 sm:gap-y-7">
                                     {/* แถว 1 */}
                                     <Field
                                         label="คำนำหน้า"
-                                        required
+                                        dataField="employee.prefix"
                                         value={data.employee.prefix}
                                         options={["นาย", "นาง", "นางสาว"]}
+                                        isRequired
+                                        error={
+                                            localErrors["employee.prefix"] ||
+                                            errors["employee.prefix"]
+                                        }
                                         onChange={(e) => {
                                             updateData(
                                                 "employee",
@@ -400,12 +663,14 @@ export default function Create() {
                                     />
                                     <Field
                                         label="ชื่อภาษาไทย"
-                                        required
+                                        dataField="employee.first_name_th"
                                         value={data.employee.first_name_th}
+                                        isRequired
                                         error={
                                             localErrors[
                                                 "employee.first_name_th"
-                                            ]
+                                            ] ||
+                                            errors["employee.first_name_th"]
                                         }
                                         onChange={(e) =>
                                             updateData(
@@ -417,10 +682,13 @@ export default function Create() {
                                     />
                                     <Field
                                         label="นามสกุลภาษาไทย"
-                                        required
                                         value={data.employee.last_name_th}
+                                        dataField="employee.last_name_th"
+                                        isRequired
                                         error={
-                                            localErrors["employee.last_name_th"]
+                                            localErrors[
+                                                "employee.last_name_th"
+                                            ] || errors["employee.last_name_th"]
                                         }
                                         onChange={(e) =>
                                             updateData(
@@ -435,7 +703,10 @@ export default function Create() {
                                     <Field
                                         label="ชื่อเล่น"
                                         value={data.employee.nickname}
-                                        error={localErrors["employee.nickname"]}
+                                        error={
+                                            localErrors["employee.nickname"] ||
+                                            errors["employee.nickname"]
+                                        }
                                         onChange={(e) =>
                                             updateData(
                                                 "employee",
@@ -446,12 +717,14 @@ export default function Create() {
                                     />
                                     <Field
                                         label="First Name"
-                                        required
                                         value={data.employee.first_name_en}
+                                        dataField="employee.first_name_en"
+                                        isRequired
                                         error={
                                             localErrors[
                                                 "employee.first_name_en"
-                                            ]
+                                            ] ||
+                                            errors["employee.first_name_en"]
                                         }
                                         onChange={(e) =>
                                             updateData(
@@ -463,10 +736,13 @@ export default function Create() {
                                     />
                                     <Field
                                         label="Last Name"
-                                        required
+                                        isRequired
                                         value={data.employee.last_name_en}
+                                        dataField="employee.last_name_en"
                                         error={
-                                            localErrors["employee.last_name_en"]
+                                            localErrors[
+                                                "employee.last_name_en"
+                                            ] || errors["employee.last_name_en"]
                                         }
                                         onChange={(e) =>
                                             updateData(
@@ -480,9 +756,15 @@ export default function Create() {
                                     {/* แถว 3 */}
                                     <Field
                                         label="วันเกิด"
-                                        required
                                         type="date"
+                                        isRequired
                                         value={data.employee.birth_date}
+                                        dataField="employee.birth_date"
+                                        error={
+                                            localErrors[
+                                                "employee.birth_date"
+                                            ] || errors["employee.birth_date"]
+                                        }
                                         onChange={(e) =>
                                             updateData(
                                                 "employee",
@@ -493,7 +775,10 @@ export default function Create() {
                                     />
                                     {/* อายุ — read only */}
                                     <div className="flex items-center gap-2 w-full gap-2">
-                                        <span className="text-[14px] xl:text-[16px] text-gray-600 whitespace-nowrap text-right">
+                                        <span
+                                            className=" text-[14px] xl:text-[16px] text-gray-600 whitespace-nowrap text-right"
+                                            style={{ minWidth: "120px" }}
+                                        >
                                             อายุ
                                         </span>
                                         <input
@@ -503,7 +788,7 @@ export default function Create() {
                                             )}
                                             readOnly
                                             placeholder="-"
-                                            className="bg-white flex-1 border border-gray-300 rounded px-2 py-1 text-[16px] text-gray-800 bg-gray-50 focus:outline-none cursor-default"
+                                            className="w-full bg-white  border border-gray-300 rounded px-2 py-1 text-[16px] text-gray-800 bg-gray-50 focus:outline-none cursor-default"
                                         />
                                     </div>
                                     <Field
@@ -573,7 +858,12 @@ export default function Create() {
                                     />
                                     <Field
                                         label="เบอร์โทร"
-                                        required
+                                        isRequired
+                                        dataField="employee.phone"
+                                        error={
+                                            localErrors["employee.phone"] ||
+                                            errors["employee.phone"]
+                                        }
                                         value={data.employee.phone}
                                         onChange={(e) =>
                                             updateData(
@@ -598,8 +888,11 @@ export default function Create() {
                                     />
                                 </div>
                                 {/* โรคประจำตัว — full width */}
-                                <div className="flex items-center gap-2 mt-7">
-                                    <span className="text-[14px] xl:text-[16px] text-gray-600 whitespace-nowrap text-left">
+                                <div className="flex items-center gap-2 mt-5 sm:mt-7 w-full">
+                                    <span
+                                        className="text-[14px] xl:text-[16px] text-gray-600 whitespace-nowrap text-right"
+                                        style={{ minWidth: "120px" }}
+                                    >
                                         โรคประจำตัว
                                     </span>
                                     <input
@@ -612,7 +905,7 @@ export default function Create() {
                                                 e.target.value,
                                             )
                                         }
-                                        className="flex-1 border border-gray-300 rounded px-2 py-1 text-[16px] text-gray-800 bg-white focus:outline-none focus:ring-1"
+                                        className="w-full border border-gray-300 rounded px-2 py-1 text-[16px] text-gray-800 bg-white focus:outline-none focus:ring-1"
                                         style={{ "--tw-ring-color": "#B3702A" }}
                                     />
                                 </div>
@@ -620,12 +913,21 @@ export default function Create() {
                         </div>
 
                         {/* ข้อมูลพนักงาน */}
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div
+                            id="section-employee"
+                            className="bg-white rounded-t-none sm:rounded-t-xl rounded-xl border border-gray-200 shadow-sm overflow-hidden "
+                        >
                             <SectionHeader title="ข้อมูลพนักงาน" />
-                            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-7 p-5 w-full justofy-center">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 w-full justofy-center gap-y-4 sm:gap-y-7 p-2 py-4 md:p-5 md:py-6">
                                 <Field
                                     label="รหัสพนักงาน"
                                     value={data.employee.employee_code}
+                                    dataField="employee.employee_code"
+                                    isRequired
+                                    error={
+                                        localErrors["employee.employee_code"] ||
+                                        errors["employee.employee_code"]
+                                    }
                                     onChange={(e) =>
                                         updateData(
                                             "employee",
@@ -637,6 +939,12 @@ export default function Create() {
                                 <Field
                                     label="ตำแหน่ง"
                                     value={data.employee.position}
+                                    dataField="employee.position"
+                                    isRequired
+                                    error={
+                                        localErrors["employee.position"] ||
+                                        errors["employee.position"]
+                                    }
                                     onChange={(e) =>
                                         updateData(
                                             "employee",
@@ -649,6 +957,12 @@ export default function Create() {
                                     label="วันเข้าทำงาน"
                                     type="date"
                                     value={data.employee.hired_date}
+                                    dataField="employee.hired_date"
+                                    isRequired
+                                    error={
+                                        localErrors["employee.hired_date"] ||
+                                        errors["employee.hired_date"]
+                                    }
                                     onChange={(e) =>
                                         updateData(
                                             "employee",
@@ -658,8 +972,11 @@ export default function Create() {
                                     }
                                 />
 
-                                <div className="flex items-center gap-2">
-                                    <label className="text-left text-[16px] text-gray-600 whitespace-nowrap">
+                                <div className="flex items-center gap-2 w-full">
+                                    <label
+                                        className="text-right text-[14px] xl:text-[16px] text-gray-600 whitespace-nowrap"
+                                        style={{ minWidth: "120px" }}
+                                    >
                                         อายุการทำงาน
                                     </label>
                                     <input
@@ -668,7 +985,7 @@ export default function Create() {
                                         value={calculateTenure(
                                             data.employee.hired_date,
                                         )}
-                                        className="min-w-[160px] block w-full border border-gray-300 rounded-lg p-2 bg-white text-gray-600 h-[34px]"
+                                        className="w-60 sm:w-full block w-full border border-gray-300 rounded-lg p-2 bg-white text-gray-600 h-[34px]"
                                     />
                                 </div>
                                 <Field
@@ -697,9 +1014,12 @@ export default function Create() {
                         </div>
 
                         {/* ที่อยู่อาศัย */}
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div
+                            id="section-address"
+                            className="bg-white rounded-t-none sm:rounded-t-xl rounded-xl border border-gray-200 shadow-sm overflow-hidden"
+                        >
                             <SectionHeader title="ที่อยู่อาศัย" />
-                            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-7 p-5">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 w-full justofy-center gap-y-4 sm:gap-y-7 p-2 py-4 md:p-5 md:py-6">
                                 {" "}
                                 <Field
                                     label="บ้านเลขที่"
@@ -804,10 +1124,13 @@ export default function Create() {
                         </div>
 
                         {/* ข้อมูลติดต่อฉุกเฉิน */}
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div
+                            id="section-emergency"
+                            className="bg-white rounded-t-none sm:rounded-t-xl rounded-xl border border-gray-200 shadow-sm overflow-hidden"
+                        >
                             <SectionHeader title="ข้อมูลติดต่อฉุกเฉิน" />
-                            <div className="p-5 space-y-7">
-                                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-7">
+                            <div className="p-2 py-4 md:p-5 md:py-6">
+                                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-4 sm:gap-y-7 gap-y-4 sm:gap-y-7">
                                     <Field
                                         label="ชื่อ-นามสกุล"
                                         value={data.emergency.name}
@@ -842,8 +1165,11 @@ export default function Create() {
                                         }
                                     />
                                 </div>
-                                <div className="flex gap-2 items-center">
-                                    <span className="text-[14px] xl:text-[16px] text-gray-600 whitespace-nowrap">
+                                <div className="flex gap-2 items-center mt-4 sm:mt-7 w-full">
+                                    <span
+                                        className="text-right text-[14px] xl:text-[16px] text-gray-600 whitespace-nowrap"
+                                        style={{ minWidth: "120px" }}
+                                    >
                                         ที่อยู่
                                     </span>
                                     <input
@@ -856,7 +1182,7 @@ export default function Create() {
                                                 e.target.value,
                                             )
                                         }
-                                        className="w-full flex-1 border border-gray-300 rounded px-2 py-1 text-[14px] xl:text-[16px] text-gray-800 bg-white focus:outline-none focus:ring-1"
+                                        className="w-full border border-gray-300 rounded px-2 py-1 text-[14px] xl:text-[16px] text-gray-800 bg-white focus:outline-none focus:ring-1"
                                         style={{ "--tw-ring-color": "#B3702A" }}
                                     />
                                 </div>
@@ -864,62 +1190,137 @@ export default function Create() {
                         </div>
 
                         {/* เอกสารที่เกี่ยวข้อง */}
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div className="bg-white rounded-t-none sm:rounded-t-xl rounded-xl border border-gray-200 shadow-sm overflow-hidden ">
                             <SectionHeader title="เอกสารที่เกี่ยวข้อง" />
 
                             {/* ฟอร์มให้แนบ pdf */}
-                            <div className="p-5 space-y-1">
+                            <div className="p-2 md:p-5 space-y-1">
                                 {documentFields.map((field) => (
                                     <div
                                         key={field.key}
                                         className="flex items-center justify-center gap-4 py-2"
                                     >
-                                        <span className="text-16px text-gray-600 w-32 text-right">
+                                        <span className="whitespace-nowrap text-[14px] md:text-[16px] text-gray-600 w-32 text-right">
                                             {field.label}
                                         </span>
 
-                                        {/* ตัวครอบช่อง Input และปุ่ม */}
-                                        <div className="flex w-[400px] border border-gray-300 rounded-lg shadow-sm bg-white overflow-hidden h-10 shadow-[0_4px_4px_0_rgba(0,0,0,0.25)]">
-                                            {/* ฝั่งซ้าย: แสดงชื่อไฟล์ */}
-                                            <span className="flex-1 px-3 py-2 text-[14px] text-gray-600 truncate flex items-center ">
-                                                {data.documents[field.key]
-                                                    ?.name || ""}
-                                            </span>
-                                            {data.documents[field.key] && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        setData("documents", {
-                                                            ...data.documents,
-                                                            [field.key]: null,
-                                                        })
-                                                    }
-                                                    className="pl-1 flex items-center justify-center transition-opacity hover:opacity-70"
-                                                    title="ลบไฟล์"
-                                                >
-                                                    <img
-                                                        src={close}
-                                                        alt="remove"
-                                                        className="w-3 h-3 mr-3" // ปรับขนาดรูปได้ที่นี่ (w-3, h-3 คือ 12px)
-                                                    />
-                                                </button>
-                                            )}{" "}
-                                            {/* ฝั่งขวา: ปุ่มอัปโหลด */}
-                                            <label className="text-[15px] cursor-pointer px-4 py-2 bg-gray-100 text-gray-700 text-xs font-medium border-l rounded-lg rounded- border-gray-300 hover:bg-gray-200 transition-colors flex items-center ">
-                                                อัปโหลด
-                                                <input
-                                                    type="file"
-                                                    className="hidden "
-                                                    onChange={(e) =>
-                                                        setData("documents", {
-                                                            ...data.documents,
-                                                            [field.key]:
+                                        <div className="flex flex-col gap-1">
+                                            {/* ตัวครอบช่อง Input และปุ่ม */}
+                                            <div className="flex w-[400px] border border-gray-300 rounded-lg shadow-sm bg-white overflow-hidden h-10 shadow-[0_4px_4px_0_rgba(0,0,0,0.25)]">
+                                                {/* ฝั่งซ้าย: แสดงชื่อไฟล์ */}
+                                                <span className="flex-1 px-3 py-2 text-[14px] text-gray-600 truncate flex items-center">
+                                                    {data.documents[field.key]
+                                                        ?.name || ""}
+                                                </span>
+
+                                                {data.documents[field.key] && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setData(
+                                                                "documents",
+                                                                {
+                                                                    ...data.documents,
+                                                                    [field.key]:
+                                                                        null,
+                                                                },
+                                                            );
+                                                            // ล้าง error ด้วยเมื่อลบไฟล์
+                                                            setDocErrors(
+                                                                (prev) => ({
+                                                                    ...prev,
+                                                                    [field.key]:
+                                                                        null,
+                                                                }),
+                                                            );
+                                                        }}
+                                                        className="pl-1 flex items-center justify-center transition-opacity hover:opacity-70"
+                                                        title="ลบไฟล์"
+                                                    >
+                                                        <img
+                                                            src={close}
+                                                            alt="remove"
+                                                            className="w-3 h-3 mr-3"
+                                                        />
+                                                    </button>
+                                                )}
+
+                                                {/* ฝั่งขวา: ปุ่มอัปโหลด */}
+                                                <label className="text-[15px] cursor-pointer px-2 sm:px-4 bg-gray-100 text-gray-700 text-xs font-medium border-l rounded-lg border-gray-300 hover:bg-gray-200 transition-colors flex items-center">
+                                                    อัปโหลด
+                                                    <input
+                                                        type="file"
+                                                        accept=".pdf"
+                                                        className="hidden"
+                                                        onChange={(e) => {
+                                                            const file =
                                                                 e.target
-                                                                    .files[0],
-                                                        })
-                                                    }
-                                                />
-                                            </label>
+                                                                    .files[0];
+                                                            if (!file) return;
+
+                                                            // ตรวจสอบประเภทไฟล์
+                                                            if (
+                                                                file.type !==
+                                                                "application/pdf"
+                                                            ) {
+                                                                setDocErrors(
+                                                                    (prev) => ({
+                                                                        ...prev,
+                                                                        [field.key]:
+                                                                            "รองรับเฉพาะไฟล์ PDF เท่านั้น",
+                                                                    }),
+                                                                );
+                                                                e.target.value =
+                                                                    "";
+                                                                return;
+                                                            }
+
+                                                            // ตรวจสอบขนาด 5MB
+                                                            const maxSize =
+                                                                5 * 1024 * 1024;
+                                                            if (
+                                                                file.size >
+                                                                maxSize
+                                                            ) {
+                                                                setDocErrors(
+                                                                    (prev) => ({
+                                                                        ...prev,
+                                                                        [field.key]:
+                                                                            "ขนาดไฟล์ต้องไม่เกิน 5MB",
+                                                                    }),
+                                                                );
+                                                                e.target.value =
+                                                                    "";
+                                                                return;
+                                                            }
+
+                                                            // ผ่านทุกเงื่อนไข → ล้าง error และเซ็ตไฟล์
+                                                            setDocErrors(
+                                                                (prev) => ({
+                                                                    ...prev,
+                                                                    [field.key]:
+                                                                        null,
+                                                                }),
+                                                            );
+                                                            setData(
+                                                                "documents",
+                                                                {
+                                                                    ...data.documents,
+                                                                    [field.key]:
+                                                                        file,
+                                                                },
+                                                            );
+                                                        }}
+                                                    />
+                                                </label>
+                                            </div>
+
+                                            {/* ข้อความ error ใต้ field */}
+                                            {docErrors[field.key] && (
+                                                <p className="text-red-500 text-xs ml-1">
+                                                    {docErrors[field.key]}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                 ))}
@@ -927,18 +1328,18 @@ export default function Create() {
                         </div>
 
                         {/* ✅ ปุ่มกด (ย้อนกลับ & บันทึก) */}
-                        <div className="flex justify-end gap-3 mt-6 pb-10">
+                        <div className="flex justify-end gap-3 mt-6 pb-10 pr-2 sm:pr-0">
                             <button
                                 type="button"
                                 onClick={() => window.history.back()}
-                                className="px-6 py-2.5 rounded-lg text-[16px] font-medium text-gray-700 border border-gray-300 bg-white hover:bg-gray-50 active:scale-95 transition-all duration-200"
+                                className="px-6 py-2.5 rounded-lg text-[14px] sm:text-[16px] font-medium text-gray-700 border border-gray-300 bg-white hover:bg-gray-50 active:scale-95 transition-all duration-200"
                             >
                                 ย้อนกลับ
                             </button>
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="px-6 py-2.5 rounded-lg text-[16px] font-medium text-white shadow-sm active:scale-95 transition-all duration-200 disabled:opacity-50"
+                                className="px-6 py-2.5 rounded-lg text-[14px] sm:text-[16px] font-medium text-white shadow-sm active:scale-95 transition-all duration-200 disabled:opacity-50"
                                 style={{ backgroundColor: "#B3702A" }}
                             >
                                 {processing ? "กำลังบันทึก..." : "บันทึกข้อมูล"}

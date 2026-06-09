@@ -50,15 +50,15 @@ return new class extends Migration
         Schema::create('employee_addresses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained()->onDelete('cascade');
-            $table->string('house_no');
+            $table->string('house_no')->nullable();
             $table->string('moo')->nullable();
-            $table->string('village_name')->nullable(); // ← เพิ่ม หมู่บ้าน
+            $table->string('village_name')->nullable(); 
             $table->string('soi')->nullable();
             $table->string('road')->nullable();
-            $table->string('sub_district');
-            $table->string('district');
-            $table->string('province');
-            $table->string('zipcode');
+            $table->string('sub_district')->nullable();
+            $table->string('district')->nullable();
+            $table->string('province')->nullable();
+            $table->string('zipcode')->nullable();
             $table->timestamps();
         });
 
@@ -66,10 +66,10 @@ return new class extends Migration
         Schema::create('employee_emergency_contacts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained()->onDelete('cascade');
-            $table->string('name');
-            $table->string('relationship');
-            $table->string('phone');
-            $table->text('full_address');
+            $table->string('name')->nullable(); 
+            $table->string('relationship')->nullable();
+            $table->string('phone')->nullable();
+            $table->text('full_address')->nullable();
             $table->timestamps();
         });
 
@@ -77,7 +77,7 @@ return new class extends Migration
         Schema::create('employee_documents', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained()->onDelete('cascade');
-            $table->string('id_card_path')->nullable(); // เก็บ Path ไฟล์ PDF
+            $table->string('id_card_path')->nullable();
             $table->string('house_reg_path')->nullable();
             $table->string('contract_path')->nullable();
             $table->string('bank_book_path')->nullable();
