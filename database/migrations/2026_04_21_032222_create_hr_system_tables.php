@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('last_name_en');
             $table->string('nickname')->nullable();
             $table->string('position');
-            $table->string('phone');
+            $table->string('phone')->nullable();
             $table->string('email')->nullable();
             $table->date('birth_date');
             $table->string('blood_group')->nullable();

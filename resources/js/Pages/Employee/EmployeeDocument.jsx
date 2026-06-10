@@ -170,7 +170,7 @@ export default function EmployeeDocument({ employee }) {
                     </h2>
 
                     {/* แสดงข้อมูลพนักงานเบื้องต้น (ย่อ) เพื่อให้รู้ว่ากำลังดูของใคร */}
-                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex items-center gap-4 mb-6 mx-4 sm:mx-0">
+                    <div className="bg-white rounded-t-none sm:rounded-t-xl rounded-xl border border-gray-200 shadow-sm p-4 flex items-center gap-4 mb-4 ">
                         <div className="w-16 h-16 rounded-full overflow-hidden border border-gray-200">
                             {employee.profile_image ? (
                                 <img
@@ -199,75 +199,73 @@ export default function EmployeeDocument({ employee }) {
                         </div>
                     </div>
 
-                    <div className="space-y-5 px-4 sm:px-0">
-                        {/* ส่วนเอกสารที่เกี่ยวข้อง */}
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden min-h-[300px]">
-                            <SectionHeader title="เอกสารที่เกี่ยวข้อง" />
+                    {/* ส่วนเอกสารที่เกี่ยวข้อง */}
+                    <div className="bg-white rounded-t-none sm:rounded-t-xl rounded-xl border border-gray-200 shadow-sm overflow-hidden ">
+                        <SectionHeader title="เอกสารที่เกี่ยวข้อง" />
 
-                            <div className="p-4 md:p-6 space-y-4">
-                                {documentFields.map((field) => {
-                                    // ตรวจสอบว่ามีข้อมูลเอกสารในฟิลด์นั้นๆ หรือไม่
-                                    const hasFile =
-                                        employee.document &&
-                                        employee.document[field.key];
- 
-                                    return (
-                                        <div
-                                            key={field.key}
-                                            className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4"
-                                        >
-                                            <span className="text-[14px] md:text-[16px] text-gray-600 sm:w-40 sm:text-right font-medium">
-                                                {field.label}
-                                            </span>
+                        <div className="px-2 py-4 md:px-5 md:py-6 space-y-4 md:p-6 space-y-4">
+                            {documentFields.map((field) => {
+                                // ตรวจสอบว่ามีข้อมูลเอกสารในฟิลด์นั้นๆ หรือไม่
+                                const hasFile =
+                                    employee.document &&
+                                    employee.document[field.key];
 
-                                            <div className="flex-1 flex items-center justify-between border border-gray-300 rounded-lg bg-gray-50 px-4 py-2">
-                                                <div className="flex items-center gap-3">
-                                                    <svg
-                                                        className={`w-6 h-6 ${hasFile ? "text-blue-500" : "text-gray-300"}`}
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        viewBox="0 0 24 24"
-                                                    >
-                                                        <path
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                            strokeWidth="2"
-                                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                                        />
-                                                    </svg>
+                                return (
+                                    <div
+                                        key={field.key}
+                                        className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 "
+                                    >
+                                        <span className="min-w-[160px] whitespace-nowrap text-[14px] xl:text-[16px] text-gray-600 text-left sm:text-right ">
+                                            {field.label}
+                                        </span>
 
-                                                    <span
-                                                        className={`text-[14px] md:text-[16px] truncate max-w-[150px] sm:max-w-xs ${hasFile ? "text-gray-800" : "text-gray-400 italic"}`}
-                                                    >
-                                                        {hasFile
-                                                            ? employee.document[
-                                                                  field.key
-                                                              ]
-                                                                  .split("/")
-                                                                  .pop()
-                                                            : "ไม่มีเอกสาร"}
-                                                    </span>
-                                                </div>
+                                        <div className="flex-1 flex items-center justify-between border border-gray-300 rounded-lg shadow-sm px-4 py-2">
+                                            <div className="flex items-center gap-3">
+                                                <svg
+                                                    className={`w-6 h-6 ${hasFile ? "text-blue-500" : "text-gray-300"}`}
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth="2"
+                                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                                    />
+                                                </svg>
 
-                                                {hasFile && (
-                                                    <a
-                                                        href={`/storage/${employee.document[field.key]}`}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="px-4 py-1.5 text-sm font-medium text-white rounded-md transition-colors shadow-sm hover:opacity-90"
-                                                        style={{
-                                                            backgroundColor:
-                                                                "#B3702A",
-                                                        }}
-                                                    >
-                                                        เปิดดู
-                                                    </a>
-                                                )}
+                                                <span
+                                                    className={`text-[14px] md:text-[16px] truncate max-w-[150px] sm:max-w-xs ${hasFile ? "text-gray-800" : "text-gray-400 italic"}`}
+                                                >
+                                                    {hasFile
+                                                        ? employee.document[
+                                                              field.key
+                                                          ]
+                                                              .split("/")
+                                                              .pop()
+                                                        : "ไม่มีเอกสาร"}
+                                                </span>
                                             </div>
+
+                                            {hasFile && (
+                                                <a
+                                                    href={`/storage/${employee.document[field.key]}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="px-4 py-1.5 text-sm font-medium text-white rounded-md transition-colors shadow-sm hover:opacity-90"
+                                                    style={{
+                                                        backgroundColor:
+                                                            "#B3702A",
+                                                    }}
+                                                >
+                                                    เปิดดู
+                                                </a>
+                                            )}
                                         </div>
-                                    );
-                                })}
-                            </div>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
 

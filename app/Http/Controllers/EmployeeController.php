@@ -93,7 +93,7 @@ class EmployeeController extends Controller
             'employee.last_name_en'  => 'required|string|max:255',
             'employee.nickname'      => 'nullable|string|max:100',
             'employee.position'      => 'required|string|max:255',
-            'employee.phone'         => 'required|string|max:20',
+            'employee.phone'         => 'nullable|string|max:20',
             'employee.email'         => 'nullable|email|unique:employees,email',
             'employee.birth_date'    => 'required|date',
             'employee.blood_group'   => 'nullable|string|max:5',
