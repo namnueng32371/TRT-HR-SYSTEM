@@ -95,6 +95,7 @@ const ActionDropdown = ({ empId, openId, setOpenId, dropUp }) => {
         },
         {
             label: "แก้ไข",
+            href: route("employee.edit", empId),
             icon: (
                 <svg
                     className="w-4 h-4"

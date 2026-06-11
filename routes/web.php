@@ -24,6 +24,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     Route::get('/employee/{employee}/document', [EmployeeController::class, 'document'])->name('employee.document');
 
-});
+    Route::get('/employee/{employee}/edit', [EmployeeController::class, 'edit'])->name('employee.edit');
+
+    Route::post('/employee/{employee}', [EmployeeController::class, 'update'])->name('employee.update');});
 
 require __DIR__.'/auth.php';
