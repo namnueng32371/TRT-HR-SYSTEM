@@ -1,6 +1,7 @@
 import { Link } from "@inertiajs/react";
 import TRTLogo from "../../../../public/images/logo.png";
 import { useState } from "react";
+import { useForm } from "@inertiajs/react";
 
 const AvatarDefault = () => (
     <svg
@@ -75,6 +76,12 @@ const documentFields = [
 
 export default function EmployeeDocument({ employee }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const { post } = useForm();
+
+    const handleLogout = (e) => {
+        e.preventDefault();
+        post(route("logout"));
+    };
 
     return (
         <div className="flex h-screen overflow-hidden bg-gray-50">
@@ -115,8 +122,7 @@ export default function EmployeeDocument({ employee }) {
                         </svg>
                         หน้าหลัก
                     </Link>
-                    <a
-                        href="#"
+                    <div
                         className="flex items-center gap-3 px-4 py-3 rounded-lg mb-1 font-medium text-white transition-all duration-200"
                         style={{ backgroundColor: "#B3702A" }}
                     >
@@ -128,8 +134,37 @@ export default function EmployeeDocument({ employee }) {
                             <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
                         </svg>
                         เอกสารพนักงาน
-                    </a>
+                    </div>
                 </nav>
+                <div className="border-t border-gray-100 px-4 py-4 flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
+                        <AvatarMale />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold text-gray-800 truncate">
+                            Super Admin
+                        </div>
+                    </div>
+                    <button
+                        onClick={handleLogout}
+                        className="text-gray-400 hover:text-red-500 transition-colors duration-200 p-1"
+                        title="ออกจากระบบ"
+                    >
+                        <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                            />
+                        </svg>
+                    </button>
+                </div>
             </aside>
 
             {/* Main Content */}

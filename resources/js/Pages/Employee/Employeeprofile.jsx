@@ -1,6 +1,7 @@
 import { Link } from "@inertiajs/react";
 import TRTLogo from "../../../../public/images/logo.png";
 import { useState } from "react";
+import { useForm } from "@inertiajs/react";
 
 const AvatarDefault = () => (
     <svg
@@ -89,6 +90,7 @@ const Field = ({ label, value }) => (
 
 export default function EmployeeProfile({ employee }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const { post } = useForm();
 
     const calculateAge = (birthDate) => {
         if (!birthDate) return "";
@@ -133,6 +135,12 @@ export default function EmployeeProfile({ employee }) {
 
         return `${years} ปี ${months} เดือน`;
     };
+
+    const handleLogout = (e) => {
+        e.preventDefault();
+        // ✅ 3. คราวนี้พอกดปุ่ม มันจะรู้จักคำว่า post แล้วครับ
+        post(route("logout"));
+    };
     return (
         <div className="flex h-screen overflow-hidden bg-gray-50">
             {/* Sidebar */}
@@ -157,10 +165,9 @@ export default function EmployeeProfile({ employee }) {
                     <img src={TRTLogo} alt="TRT Logo" className="w-32" />
                 </div>
                 <nav className="flex-1 py-4 px-3">
-                    <a
-                        href="#"
-                        className="flex items-center gap-3 px-4 py-3 rounded-lg mb-1 font-medium text-white transition-all duration-200"
-                        style={{ backgroundColor: "#B3702A" }}
+                    <Link
+                        href={route("dashboard")}
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg mb-1 font-medium text-gray-600 transition-all duration-200"
                     >
                         <svg
                             className="w-5 h-5"
@@ -170,10 +177,10 @@ export default function EmployeeProfile({ employee }) {
                             <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
                         </svg>
                         หน้าหลัก
-                    </a>
-                    <a
-                        href="#"
-                        className="flex items-center gap-3 px-4 py-3 rounded-lg mb-1 font-medium text-gray-600 hover:bg-amber-50 transition-all duration-200"
+                    </Link>
+                    <div
+                        style={{ backgroundColor: "#B3702A" }}
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg mb-1 font-medium text-white hover:bg-amber-50 transition-all duration-200"
                     >
                         <svg
                             className="w-5 h-5"
@@ -188,8 +195,8 @@ export default function EmployeeProfile({ employee }) {
                                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                             />
                         </svg>
-                        สร้างข้อมูล
-                    </a>
+                        หน้าข้อมูล
+                    </div>
                 </nav>
                 <div className="border-t border-gray-100 px-4 py-4 flex items-center gap-2">
                     <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
@@ -200,9 +207,13 @@ export default function EmployeeProfile({ employee }) {
                             Super Admin
                         </div>
                     </div>
-                    <button className="text-gray-400 hover:text-red-500 transition-colors p-1">
+                    <button
+                        onClick={handleLogout}
+                        className="text-gray-400 hover:text-red-500 transition-colors duration-200 p-1"
+                        title="ออกจากระบบ"
+                    >
                         <svg
-                            className="w-4 h-4"
+                            className="w-5 h-5"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -275,10 +286,19 @@ export default function EmployeeProfile({ employee }) {
                     {/* Avatar */}
                     <div className="flex justify-center mb-6">
                         <div className="w-28 h-28 rounded-lg overflow-hidden border-2 border-gray-200 shadow-sm">
-                            {employee.prefix === "นาย" ? (
+                            {employee.profile_image ? (
+                                <img
+                                    src={`/storage/${employee.profile_image}`}
+                                    alt="Profile"
+                                    className="w-full h-full object-cover  rounded-full"
+                                />
+                            ) : employee.prefix === "นาย" ? (
                                 <AvatarMale />
-                            ) : (
+                            ) : employee.prefix === "นาง" ||
+                              employee.prefix === "นางสาว" ? (
                                 <AvatarFemale />
+                            ) : (
+                                <AvatarDefault />
                             )}
                         </div>
                     </div>

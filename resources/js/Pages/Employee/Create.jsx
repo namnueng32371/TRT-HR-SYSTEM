@@ -394,6 +394,12 @@ export default function Create() {
         return `${years} ปี ${months} เดือน`;
     };
 
+    const handleLogout = (e) => {
+        e.preventDefault();
+        // ✅ 3. คราวนี้พอกดปุ่ม มันจะรู้จักคำว่า post แล้วครับ
+        post(route("logout"));
+    };
+
     return (
         <div className="flex h-screen overflow-hidden bg-gray-50">
             {/* Sidebar */}
@@ -412,8 +418,8 @@ export default function Create() {
                     xl:translate-x-0
                           `}
             >
-                <div className="flex items-center justify-center py-6 px-4 border-b border-gray-100">
-                    <img src={TRTLogo} alt="TRT Logo" className="w-32" />
+                <div className="flex items-center justify-center py-8 px-6 border-b border-gray-100">
+                    <img src={TRTLogo} alt="TRT Logo" className="w-40" />
                 </div>
                 <nav className="flex-1 py-4 px-3">
                     <Link
@@ -435,7 +441,7 @@ export default function Create() {
                         </svg>
                         หน้าหลัก
                     </Link>
-                    <a
+                    <div
                         href="#"
                         className="flex items-center gap-3 px-4 py-3 rounded-lg mb-1 font-medium text-white transition-all duration-200"
                         style={{ backgroundColor: "#B3702A" }}
@@ -454,8 +460,37 @@ export default function Create() {
                             />
                         </svg>
                         สร้างข้อมูล
-                    </a>
+                    </div>
                 </nav>
+                <div className="border-t border-gray-100 px-4 py-4 flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
+                        <AvatarMale />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold text-gray-800 truncate">
+                            Super Admin
+                        </div>
+                    </div>
+                    <button
+                        onClick={handleLogout}
+                        className="text-gray-400 hover:text-red-500 transition-colors duration-200 p-1"
+                        title="ออกจากระบบ"
+                    >
+                        <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                            />
+                        </svg>
+                    </button>
+                </div>
             </aside>
 
             {/* Main */}

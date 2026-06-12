@@ -157,8 +157,9 @@ export default function Edit({ employee }) {
     const [localErrors, setLocalErrors] = useState({});
     const [showConfirm, setShowConfirm] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [showBackConfirm, setShowBackConfirm] = useState(false);
 
-    const { data, setData, post, processing, errors, clearErrors } = useForm({
+    const { data, setData, post, processing, errors, isDirty } = useForm({
         employee: {
             employee_code: employee.employee_code || "",
             prefix: employee.prefix || "",
@@ -210,10 +211,17 @@ export default function Edit({ employee }) {
             application_form_path: null,
             other_docs_path: null,
         },
+        deleted_documents: [],
     });
+
+    const handleLogout = (e) => {
+        e.preventDefault();
+        post(route("logout"));
+    };
+
     const [prefix, setPrefix] = useState(employee.prefix || "");
     const [docErrors, setDocErrors] = useState({});
-    const existingDocs = employee.document || {}; // [เพิ่ม] เก็บเอกสารเก่าไว้เช็ค
+    // const existingDocs = employee.document || {}; // [เพิ่ม] เก็บเอกสารเก่าไว้เช็ค
 
     const documentFields = [
         { label: "สำเนาบัตรประชาชน", key: "id_card_path" },
@@ -391,6 +399,17 @@ export default function Edit({ employee }) {
         return `${years} ปี ${months} เดือน`;
     };
 
+    // ฟังก์ชันป้องกันการกดย้อนกลับ
+    const handleBackClick = () => {
+        // ถ้าฟอร์มถูกพิมพ์แก้ไขไปแล้ว (isDirty เป็น true) ให้เปิด Popup เตือน
+        if (isDirty) {
+            setShowBackConfirm(true);
+        } else {
+            // ถ้ายังไม่ได้แตะอะไรเลย ให้ย้อนกลับได้ทันทีแบบไม่ต้องกวนใจ
+            window.history.back();
+        }
+    };
+
     return (
         <div className="flex h-screen overflow-hidden bg-gray-50">
             {/* Sidebar */}
@@ -432,8 +451,8 @@ export default function Edit({ employee }) {
                         </svg>
                         หน้าหลัก
                     </Link>
-                    <a
-                        href="#"
+
+                    <div
                         className="flex items-center gap-3 px-4 py-3 rounded-lg mb-1 font-medium text-white transition-all duration-200"
                         style={{ backgroundColor: "#B3702A" }}
                     >
@@ -450,11 +469,39 @@ export default function Edit({ employee }) {
                                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                             />
                         </svg>
-                        สร้างข้อมูล
-                    </a>
+                        แก้ไขข้อมูล
+                    </div>
                 </nav>
+                <div className="border-t border-gray-100 px-4 py-4 flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
+                        <AvatarMale />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold text-gray-800 truncate">
+                            Super Admin
+                        </div>
+                    </div>
+                    <button
+                        onClick={handleLogout}
+                        className="text-gray-400 hover:text-red-500 transition-colors duration-200 p-1"
+                        title="ออกจากระบบ"
+                    >
+                        <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                            />
+                        </svg>
+                    </button>
+                </div>
             </aside>
-
             {/* Main */}
             <div className="flex-1 flex flex-col overflow-hidden">
                 <div
@@ -1239,7 +1286,7 @@ export default function Edit({ employee }) {
                                                     {/* ชื่อไฟล์ หรือ คำว่า "ไม่มีเอกสาร" */}
                                                     {/* 🛠️ แก้ไข: ปรับสีข้อความตามสถานะตัวแปร hasFile */}
                                                     <span
-                                                        className={`text-[14px] md:text-[16px] truncate max-w-[150px] sm:max-w-xs ${
+                                                        className={`text-[14px] md:text-[16px] truncate max-w-[160px] sm:max-w-[240px] md:max-w-[300px] xl:max-w-[350px] ${
                                                             hasFile
                                                                 ? "text-gray-800"
                                                                 : "text-gray-400 italic"
@@ -1260,21 +1307,26 @@ export default function Edit({ employee }) {
                                                     </span>
                                                 </div>
 
-                                                {/* 🛠️ แก้ไขเงื่อนไขปุ่มลบไฟล์: หากมีไฟล์ใหม่หรือไฟล์เก่าเดิม ให้เปิดสิทธิ์ให้กดลบค่าได้ */}
                                                 {hasFile && (
                                                     <button
                                                         type="button"
                                                         onClick={() => {
                                                             setData(
-                                                                "documents",
-                                                                {
-                                                                    ...data.documents,
-                                                                    [field.key]:
-                                                                        null,
-                                                                },
+                                                                (prevData) => ({
+                                                                    ...prevData,
+                                                                    documents: {
+                                                                        ...prevData.documents,
+                                                                        [field.key]:
+                                                                            null,
+                                                                    },
+                                                                    // เอาชื่อไฟล์ที่ลบ ใส่เข้าไปใน Array ถังขยะ
+                                                                    deleted_documents:
+                                                                        [
+                                                                            ...prevData.deleted_documents,
+                                                                            field.key,
+                                                                        ],
+                                                                }),
                                                             );
-                                                            // ➕ เพิ่มเติม: กรณีต้องการเคลียร์สเตตไฟล์เก่าเพื่อส่งสถานะลบไปที่ Controller
-                                                            // เจ๋งสามารถเคลียร์สเตตอ้างอิงตรงนี้เพิ่มเติมได้ตามโครงสร้างระบบหลังบ้านครับ
                                                             if (
                                                                 employee.document
                                                             ) {
@@ -1387,7 +1439,7 @@ export default function Edit({ employee }) {
                         <div className="flex justify-end gap-3 mt-6 pb-10 pr-2 sm:pr-0">
                             <button
                                 type="button"
-                                onClick={() => window.history.back()}
+                                onClick={handleBackClick}
                                 className="px-6 py-2.5 rounded-lg text-[14px] sm:text-[16px] font-medium text-gray-700 border border-gray-300 bg-white hover:bg-gray-50 active:scale-95 transition-all duration-200"
                             >
                                 ย้อนกลับ
@@ -1400,11 +1452,67 @@ export default function Edit({ employee }) {
                             >
                                 {processing ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
                             </button>
+                            {/* ➕ เพิ่ม: โค้ด Popup สำหรับยืนยันการย้อนกลับ */}
+                            {showBackConfirm && (
+                                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm">
+                                    <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4 transform transition-all">
+                                        <div className="text-center">
+                                            {/* ไอคอนแจ้งเตือนสีแดง */}
+                                            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                                                <svg
+                                                    className="h-6 w-6 text-red-600"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    stroke="currentColor"
+                                                >
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth="2"
+                                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                                    />
+                                                </svg>
+                                            </div>
+                                            <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                                ละทิ้งการเปลี่ยนแปลง?
+                                            </h3>
+                                            <p className="text-[16px] text-gray-500 mb-6">
+                                                คุณมีการแก้ไขข้อมูลที่ยังไม่ได้บันทึก
+                                                หากย้อนกลับตอนนี้
+                                                ข้อมูลที่พิมพ์ไว้จะหายไปทั้งหมด
+                                                ยืนยันหรือไม่?
+                                            </p>
+                                            <div className="flex justify-center gap-3">
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setShowBackConfirm(
+                                                            false,
+                                                        )
+                                                    }
+                                                    className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                                >
+                                                    แก้ไขต่อ
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        window.history.back()
+                                                    }
+                                                    className="px-4 py-2 text-white rounded-lg transition-colors bg-red-600 hover:bg-red-700"
+                                                >
+                                                    ยืนยันการย้อนกลับ
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </form>
                 </main>
             </div>
-            {/* ✅ แทรกโค้ด Popup เพิ่มตรงนี้เลยครับ (ก่อนปิด </div> ตัวสุดท้าย) */}
+            {/* ✅ Popup ยืนยันส่งฟอร์ม */}
             {showConfirm && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm">
                     <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4 transform transition-all">
@@ -1446,6 +1554,55 @@ export default function Edit({ employee }) {
                                     style={{ backgroundColor: "#B3702A" }}
                                 >
                                     ยืนยันการบันทึก
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* ✅ Popup เช็คการกดย้อนกลับ  */}{" "}
+            {showBackConfirm && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm">
+                    <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4 transform transition-all">
+                        <div className="text-center">
+                            {/* ไอคอนแจ้งเตือนสีแดง */}
+                            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                                <svg
+                                    className="h-6 w-6 text-red-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                    />
+                                </svg>
+                            </div>
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                ละทิ้งการเปลี่ยนแปลง?
+                            </h3>
+                            <p className="text-[16px] text-gray-500 mb-6">
+                                คุณมีการแก้ไขข้อมูลที่ยังไม่ได้บันทึก
+                                หากย้อนกลับตอนนี้
+                                ข้อมูลที่พิมพ์ไว้จะหายไปทั้งหมด ยืนยันหรือไม่?
+                            </p>
+                            <div className="flex justify-center gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowBackConfirm(false)}
+                                    className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                >
+                                    แก้ไขต่อ
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => window.history.back()}
+                                    className="px-4 py-2 text-white rounded-lg transition-colors bg-red-600 hover:bg-red-700"
+                                >
+                                    ยืนยันการย้อนกลับ
                                 </button>
                             </div>
                         </div>
