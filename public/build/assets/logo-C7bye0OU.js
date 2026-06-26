@@ -1,0 +1,1 @@
+var e=`/build/assets/logo-Cbnmk13p.png`;export{e as t};
