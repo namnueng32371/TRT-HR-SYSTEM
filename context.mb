@@ -279,6 +279,35 @@ DB_PASSWORD="รหัสผ่านฐานข้อมูลใน CloudPane
 ```
 *⚠️ ข้อควรระวัง: หากรหัสผ่านมีเครื่องหมาย `#` นำหน้า (เช่น `#logic1122`) ต้องมีฟันหนู `"..."` ครอบไว้เสมอดังตัวอย่างด้านบน ไม่เช่นนั้นระบบจะมองข้ามรหัสผ่านเนื่องจากคิดว่าเป็นคอมเมนต์ และทำให้การเชื่อมต่อฐานข้อมูลล้มเหลว*
 
+##### คำสั่งการเชื่อมต่อ SSH และอัปเดตระบบด้วย Git บน CloudPanel
+หากต้องการเข้าจัดการระบบหรืออัปเดตโค้ดบนเซิร์ฟเวอร์ CloudPanel ผ่าน SSH ให้ดำเนินการดังนี้:
+* **เชื่อมต่อ SSH (จากเครื่องหลัก):**
+  ```bash
+  ssh adminssh@192.168.7.122
+  ```
+* **ย้ายเข้าโฟลเดอร์โปรเจกต์:**
+  ```bash
+  cd htdocs/thairubbtechconnect.com
+  ```
+* **ดึงโค้ดล่าสุดจาก GitHub:**
+  ```bash
+  git pull
+  ```
+  *(หากมีปัญหาสิทธิ์ของ Git ให้รัน: `git config --global --add safe.directory /home/thairubbtechconnect/htdocs/thairubbtechconnect.com` ก่อน)*
+* **ตั้งค่าและรันแคชระบบหลังบ้าน:**
+  ```bash
+  php artisan key:generate     # สร้างคีย์ระบบใหม่ (หากจำเป็น)
+  php artisan storage:link     # เชื่อมต่อโฟลเดอร์สำหรับไฟล์แนบและรูปถ่ายพนักงาน
+  php artisan config:cache     # ล้างแคชคอนฟิกและสร้างใหม่เพื่อความเร็ว
+  php artisan route:cache      # ล้างแคชเส้นทางและสร้างใหม่เพื่อความเร็ว
+  php artisan view:clear       # ล้างแคชหน้าจอการแสดงผล (Blade/Inertia)
+  php artisan cache:clear      # ล้างระบบแคชชั่วคราวทั้งหมด
+  ```
+* **นำเข้าฐานข้อมูลจากเครื่องขึ้นเซิร์ฟเวอร์:**
+  ```bash
+  mysql -u thairubbtechusr -p thairubbtechdb < backup.sql
+  ```
+
 ---
 
 ### 6.5 การใช้งาน ngrok สำหรับแชร์ระบบให้ UAT ทดสอบ
