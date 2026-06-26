@@ -1,0 +1,58 @@
+version: "3.8"
+
+services:
+    # 🏢 1. ตู้หลัก (แอปพลิเคชัน Laravel)
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: trt-hr-app
+        container_name: trt-hr-app
+        ports:
+            - "5173:5173"
+        restart: unless-stopped
+        tty: true
+        environment:
+            SERVICE_NAME: app
+        volumes:
+            - .:/var/www
+        networks:
+            - trt-network
+
+    # 🌐 2. ตู้เว็บเซิร์ฟเวอร์ (Nginx)
+    web:
+        image: nginx:alpine
+        container_name: trt-hr-web
+        restart: unless-stopped
+        ports:
+            - "8000:80"
+        volumes:
+            - .:/var/www
+            - ./docker-compose/nginx:/etc/nginx/conf.d/
+        networks:
+            - trt-network
+        depends_on:
+            - app
+
+    # 🗄️ 3. ตู้ฐานข้อมูล (MySQL)
+    db:
+        image: mysql:8.0
+        container_name: trt-hr-db
+        restart: unless-stopped
+        environment:
+            MYSQL_DATABASE: trt_hr_db
+            MYSQL_ROOT_PASSWORD: root_password
+        ports:
+            - "33061:3306"
+        volumes:
+            - trt-db-data:/var/lib/mysql
+        networks:
+            - trt-network
+
+volumes:
+    trt-db-data:
+        driver: local
+
+networks:
+    trt-network:
+        driver: bridge

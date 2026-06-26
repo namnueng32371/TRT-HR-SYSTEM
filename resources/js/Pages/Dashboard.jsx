@@ -95,6 +95,7 @@ const ActionDropdown = ({ empId, openId, setOpenId, dropUp }) => {
         },
         {
             label: "แก้ไข",
+            href: route("employee.edit", empId),
             icon: (
                 <svg
                     className="w-4 h-4"
@@ -261,9 +262,6 @@ export default function Dashboard({ employees }) {
         return [1, "...", current - 1, current, current + 1, "...", total];
     };
 
-    const inputClass =
-        "w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200";
-
     return (
         <div className="flex h-screen overflow-hidden bg-gray-50">
             {/* Sidebar */}
@@ -289,7 +287,7 @@ export default function Dashboard({ employees }) {
 
                 {/* Nav */}
                 <nav className="flex-1 py-4 px-3">
-                    <a
+                    <div
                         href="#"
                         className="flex items-center gap-3 px-4 py-3 rounded-lg mb-1 font-medium text-white transition-all duration-200"
                         style={{ backgroundColor: "#B3702A" }}
@@ -302,8 +300,8 @@ export default function Dashboard({ employees }) {
                             <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
                         </svg>
                         หน้าหลัก
-                    </a>
-                    <a
+                    </div>
+                    <Link
                         href={route("employee.create")}
                         className="flex items-center gap-3 px-4 py-3 rounded-lg mb-1 font-medium text-gray-600 hover:bg-amber-50 transition-all duration-200"
                         style={{ "--hover-color": "#B3702A" }}
@@ -322,7 +320,7 @@ export default function Dashboard({ employees }) {
                             />
                         </svg>
                         สร้างข้อมูล
-                    </a>
+                    </Link>
                 </nav>
 
                 {/* User */}
@@ -502,54 +500,69 @@ export default function Dashboard({ employees }) {
                                             </td>
                                         </tr>
                                     ) : (
-                                        paginated.map((emp, i) => (
-                                            <tr
-                                                key={emp.id}
-                                                className={`transition-colors duration-150 hover:bg-amber-50 border-red border`}
-                                            >
-                                                <td className="py-3.5 flex justify-center h-full">
-                                                    <div className="w-16 h-auto lg:w-20 rounded-full overflow-hidden border-2 border-gray-100">
-                                                        {emp.prefix === "นาย" ||
-                                                        emp.prefix === "Mr." ? (
-                                                            <AvatarMale />
-                                                        ) : (
-                                                            <AvatarFemale />
-                                                        )}
-                                                    </div>
-                                                </td>
-                                                <td className="py-3 text-center text-sm font-medium text-gray-700">
-                                                    {emp.employee_code}
-                                                </td>
-                                                <td className="py-3 text-center text-sm text-gray-800">
-                                                    {emp.first_name_th}{" "}
-                                                    {emp.last_name_th}
-                                                </td>
-                                                <td className="py-3 text-center text-sm text-gray-600">
-                                                    {emp.position}
-                                                </td>
-                                                <td className="py-3 text-center text-sm text-gray-600">
-                                                    {emp.hired_date}
-                                                </td>
-                                                <td className="py-3 text-center text-sm text-gray-600">
-                                                    {emp.phone}
-                                                </td>
-                                                <td className="pr-5">
-                                                    <ActionDropdown
-                                                        empId={emp.id}
-                                                        openId={openDropdownId}
-                                                        setOpenId={
-                                                            setOpenDropdownId
-                                                        }
-                                                        dropUp={
-                                                            i >=
-                                                                paginated.length -
-                                                                    2 &&
-                                                            paginated.length > 2
-                                                        }
-                                                    />
-                                                </td>
-                                            </tr>
-                                        ))
+                                        paginated.map((emp, i) => {
+                                            console.log("เช็คข้อมูล emp:", emp);
+                                            return (
+                                                <tr
+                                                    key={emp.id}
+                                                    className={`transition-colors duration-150 hover:bg-amber-50`}
+                                                >
+                                                    <td className="py-3.5 flex justify-center h-full">
+                                                        <div className="w-20 h-20 lg:w-[100px] lg:h-[100px] rounded-full overflow-hidden border-2 border-gray-100">
+                                                            {emp.profile_image ? (
+                                                                <img
+                                                                    src={`/storage/${emp.profile_image}`}
+                                                                    alt="Profile"
+                                                                    className="w-20 h-20 lg:w-[100px] lg:h-[100px] rounded-full object-cover"
+                                                                />
+                                                            ) : emp.prefix ===
+                                                                  "นาย" ||
+                                                              emp.prefix ===
+                                                                  "Mr." ? (
+                                                                // ❌ ถ้าไม่มีรูป: ค่อยมาเช็คคำนำหน้าเพื่อโชว์ Avatar ปกติเหมือนเดิม
+                                                                <AvatarMale />
+                                                            ) : (
+                                                                <AvatarFemale />
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-3 text-center text-sm font-medium text-gray-700">
+                                                        {emp.employee_code}
+                                                    </td>
+                                                    <td className="py-3 text-center text-sm text-gray-800">
+                                                        {emp.first_name_th}{" "}
+                                                        {emp.last_name_th}
+                                                    </td>
+                                                    <td className="py-3 text-center text-sm text-gray-600">
+                                                        {emp.position}
+                                                    </td>
+                                                    <td className="py-3 text-center text-sm text-gray-600">
+                                                        {emp.hired_date}
+                                                    </td>
+                                                    <td className="py-3 text-center text-sm text-gray-600">
+                                                        {emp.phone}
+                                                    </td>
+                                                    <td className="pr-5">
+                                                        <ActionDropdown
+                                                            empId={emp.id}
+                                                            openId={
+                                                                openDropdownId
+                                                            }
+                                                            setOpenId={
+                                                                setOpenDropdownId
+                                                            }
+                                                            dropUp={
+                                                                i >=
+                                                                    paginated.length -
+                                                                        2 &&
+                                                                paginated.length >
+                                                                    2
+                                                            }
+                                                        />
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
                                     )}
                                 </tbody>
                             </table>

@@ -234,7 +234,7 @@ export default function Create() {
         { category: "employee", field: "employee_code", name: "รหัสพนักงาน" },
         { category: "employee", field: "position", name: "ตำแหน่ง" },
         { category: "employee", field: "hired_date", name: "วันเข้าทำงาน" },
-        { category: "employee", field: "phone", name: "เบอร์โทร" },
+        // { category: "employee", field: "phone", name: "เบอร์โทร" },
     ];
 
     const thaiRegex = /^[ก-๙\s]*$/; // ยอมรับเฉพาะ ก-ฮ และช่องว่าง
@@ -394,6 +394,12 @@ export default function Create() {
         return `${years} ปี ${months} เดือน`;
     };
 
+    const handleLogout = (e) => {
+        e.preventDefault();
+        // ✅ 3. คราวนี้พอกดปุ่ม มันจะรู้จักคำว่า post แล้วครับ
+        post(route("logout"));
+    };
+
     return (
         <div className="flex h-screen overflow-hidden bg-gray-50">
             {/* Sidebar */}
@@ -412,8 +418,8 @@ export default function Create() {
                     xl:translate-x-0
                           `}
             >
-                <div className="flex items-center justify-center py-6 px-4 border-b border-gray-100">
-                    <img src={TRTLogo} alt="TRT Logo" className="w-32" />
+                <div className="flex items-center justify-center py-8 px-6 border-b border-gray-100">
+                    <img src={TRTLogo} alt="TRT Logo" className="w-40" />
                 </div>
                 <nav className="flex-1 py-4 px-3">
                     <Link
@@ -435,7 +441,7 @@ export default function Create() {
                         </svg>
                         หน้าหลัก
                     </Link>
-                    <a
+                    <div
                         href="#"
                         className="flex items-center gap-3 px-4 py-3 rounded-lg mb-1 font-medium text-white transition-all duration-200"
                         style={{ backgroundColor: "#B3702A" }}
@@ -454,8 +460,37 @@ export default function Create() {
                             />
                         </svg>
                         สร้างข้อมูล
-                    </a>
+                    </div>
                 </nav>
+                <div className="border-t border-gray-100 px-4 py-4 flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
+                        <AvatarMale />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold text-gray-800 truncate">
+                            Super Admin
+                        </div>
+                    </div>
+                    <button
+                        onClick={handleLogout}
+                        className="text-gray-400 hover:text-red-500 transition-colors duration-200 p-1"
+                        title="ออกจากระบบ"
+                    >
+                        <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                            />
+                        </svg>
+                    </button>
+                </div>
             </aside>
 
             {/* Main */}
@@ -811,7 +846,8 @@ export default function Create() {
                                         error={
                                             localErrors[
                                                 "identity.id_card_number"
-                                            ]
+                                            ] ||
+                                            errors["identity.id_card_number"]
                                         }
                                         onChange={(e) =>
                                             updateData(
@@ -858,12 +894,7 @@ export default function Create() {
                                     />
                                     <Field
                                         label="เบอร์โทร"
-                                        isRequired
                                         dataField="employee.phone"
-                                        error={
-                                            localErrors["employee.phone"] ||
-                                            errors["employee.phone"]
-                                        }
                                         value={data.employee.phone}
                                         onChange={(e) =>
                                             updateData(
@@ -877,7 +908,10 @@ export default function Create() {
                                         label="อีเมล"
                                         type="email"
                                         value={data.employee.email}
-                                        error={localErrors["employee.email"]}
+                                        error={
+                                            localErrors["employee.email"] ||
+                                            errors["employee.email"]
+                                        }
                                         onChange={(e) =>
                                             updateData(
                                                 "employee",
@@ -1194,134 +1228,154 @@ export default function Create() {
                             <SectionHeader title="เอกสารที่เกี่ยวข้อง" />
 
                             {/* ฟอร์มให้แนบ pdf */}
-                            <div className="p-2 md:p-5 space-y-1">
+                            <div className="px-2 py-4 md:px-5 md:py-6 space-y-4">
                                 {documentFields.map((field) => (
                                     <div
                                         key={field.key}
-                                        className="flex items-center justify-center gap-4 py-2"
+                                        className="flex flex-col items-left sm:items-center sm:flex-row gap-1 sm:gap-4 "
                                     >
-                                        <span className="whitespace-nowrap text-[14px] md:text-[16px] text-gray-600 w-32 text-right">
+                                        <span className="min-w-[160px] whitespace-nowrap text-[14px] xl:text-[16px] text-gray-600 w-32 text-left sm:text-right ">
                                             {field.label}
                                         </span>
 
-                                        <div className="flex flex-col gap-1">
-                                            {/* ตัวครอบช่อง Input และปุ่ม */}
-                                            <div className="flex w-[400px] border border-gray-300 rounded-lg shadow-sm bg-white overflow-hidden h-10 shadow-[0_4px_4px_0_rgba(0,0,0,0.25)]">
-                                                {/* ฝั่งซ้าย: แสดงชื่อไฟล์ */}
-                                                <span className="flex-1 px-3 py-2 text-[14px] text-gray-600 truncate flex items-center">
-                                                    {data.documents[field.key]
-                                                        ?.name || ""}
-                                                </span>
-
-                                                {data.documents[field.key] && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setData(
-                                                                "documents",
-                                                                {
-                                                                    ...data.documents,
-                                                                    [field.key]:
-                                                                        null,
-                                                                },
-                                                            );
-                                                            // ล้าง error ด้วยเมื่อลบไฟล์
-                                                            setDocErrors(
-                                                                (prev) => ({
-                                                                    ...prev,
-                                                                    [field.key]:
-                                                                        null,
-                                                                }),
-                                                            );
-                                                        }}
-                                                        className="pl-1 flex items-center justify-center transition-opacity hover:opacity-70"
-                                                        title="ลบไฟล์"
-                                                    >
-                                                        <img
-                                                            src={close}
-                                                            alt="remove"
-                                                            className="w-3 h-3 mr-3"
-                                                        />
-                                                    </button>
-                                                )}
-
-                                                {/* ฝั่งขวา: ปุ่มอัปโหลด */}
-                                                <label className="text-[15px] cursor-pointer px-2 sm:px-4 bg-gray-100 text-gray-700 text-xs font-medium border-l rounded-lg border-gray-300 hover:bg-gray-200 transition-colors flex items-center">
-                                                    อัปโหลด
-                                                    <input
-                                                        type="file"
-                                                        accept=".pdf"
-                                                        className="hidden"
-                                                        onChange={(e) => {
-                                                            const file =
-                                                                e.target
-                                                                    .files[0];
-                                                            if (!file) return;
-
-                                                            // ตรวจสอบประเภทไฟล์
-                                                            if (
-                                                                file.type !==
-                                                                "application/pdf"
-                                                            ) {
-                                                                setDocErrors(
-                                                                    (prev) => ({
-                                                                        ...prev,
-                                                                        [field.key]:
-                                                                            "รองรับเฉพาะไฟล์ PDF เท่านั้น",
-                                                                    }),
-                                                                );
-                                                                e.target.value =
-                                                                    "";
-                                                                return;
-                                                            }
-
-                                                            // ตรวจสอบขนาด 5MB
-                                                            const maxSize =
-                                                                5 * 1024 * 1024;
-                                                            if (
-                                                                file.size >
-                                                                maxSize
-                                                            ) {
-                                                                setDocErrors(
-                                                                    (prev) => ({
-                                                                        ...prev,
-                                                                        [field.key]:
-                                                                            "ขนาดไฟล์ต้องไม่เกิน 5MB",
-                                                                    }),
-                                                                );
-                                                                e.target.value =
-                                                                    "";
-                                                                return;
-                                                            }
-
-                                                            // ผ่านทุกเงื่อนไข → ล้าง error และเซ็ตไฟล์
-                                                            setDocErrors(
-                                                                (prev) => ({
-                                                                    ...prev,
-                                                                    [field.key]:
-                                                                        null,
-                                                                }),
-                                                            );
-                                                            setData(
-                                                                "documents",
-                                                                {
-                                                                    ...data.documents,
-                                                                    [field.key]:
-                                                                        file,
-                                                                },
-                                                            );
-                                                        }}
+                                        {/* ตัวครอบช่อง Input และปุ่ม */}
+                                        <div className="flex w-full border border-gray-300 rounded-lg shadow-sm bg-white overflow-hidden">
+                                            {/* ฝั่งซ้าย: แสดงชื่อไฟล์ */}
+                                            <div className="w-full flex items-center px-4 py-2 gap-3 h-[42px]">
+                                                <svg
+                                                    className={`flex-shrink-0 w-5 h-5 ${
+                                                        data.documents[
+                                                            field.key
+                                                        ]
+                                                            ? "text-blue-500"
+                                                            : "text-gray-300"
+                                                    }`}
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth="2"
+                                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                                     />
-                                                </label>
+                                                </svg>
+
+                                                {/* ชื่อไฟล์ หรือ คำว่า "ไม่มีเอกสาร" */}
+                                                <span
+                                                    className={`text-[14px] md:text-[16px] truncate ${
+                                                        data.documents[
+                                                            field.key
+                                                        ]
+                                                            ? "text-gray-800"
+                                                            : "text-gray-400 italic"
+                                                    }`}
+                                                >
+                                                    {data.documents[field.key]
+                                                        ? data.documents[
+                                                              field.key
+                                                          ].name // ดึงชื่อไฟล์จาก File Object โดยตรง
+                                                        : "ไม่มีเอกสาร"}
+                                                </span>
                                             </div>
 
-                                            {/* ข้อความ error ใต้ field */}
-                                            {docErrors[field.key] && (
-                                                <p className="text-red-500 text-xs ml-1">
-                                                    {docErrors[field.key]}
-                                                </p>
+                                            {data.documents[field.key] && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setData("documents", {
+                                                            ...data.documents,
+                                                            [field.key]: null,
+                                                        });
+                                                        // ล้าง error ด้วยเมื่อลบไฟล์
+                                                        setDocErrors(
+                                                            (prev) => ({
+                                                                ...prev,
+                                                                [field.key]:
+                                                                    null,
+                                                            }),
+                                                        );
+                                                    }}
+                                                    className="pl-1 flex items-center justify-center transition-opacity hover:opacity-70"
+                                                    title="ลบไฟล์"
+                                                >
+                                                    <img
+                                                        src={close}
+                                                        alt="remove"
+                                                        className="w-3 h-3 mr-3"
+                                                    />
+                                                </button>
                                             )}
+
+                                            {/* ฝั่งขวา: ปุ่มอัปโหลด */}
+                                            <label className="text-[0.875rem] whitespace-nowrap cursor-pointer px-2 sm:px-4 bg-gray-100 text-gray-700 text-xs font-medium border-l rounded-lg border-gray-300 hover:bg-gray-200 transition-colors flex items-center">
+                                                อัปโหลด
+                                                <input
+                                                    type="file"
+                                                    accept=".pdf"
+                                                    className="hidden"
+                                                    onChange={(e) => {
+                                                        const file =
+                                                            e.target.files[0];
+                                                        if (!file) return;
+
+                                                        // ตรวจสอบประเภทไฟล์
+                                                        if (
+                                                            file.type !==
+                                                            "application/pdf"
+                                                        ) {
+                                                            setDocErrors(
+                                                                (prev) => ({
+                                                                    ...prev,
+                                                                    [field.key]:
+                                                                        "รองรับเฉพาะไฟล์ PDF เท่านั้น",
+                                                                }),
+                                                            );
+                                                            e.target.value = "";
+                                                            return;
+                                                        }
+
+                                                        // ตรวจสอบขนาด 5MB
+                                                        const maxSize =
+                                                            5 * 1024 * 1024;
+                                                        if (
+                                                            file.size > maxSize
+                                                        ) {
+                                                            setDocErrors(
+                                                                (prev) => ({
+                                                                    ...prev,
+                                                                    [field.key]:
+                                                                        "ขนาดไฟล์ต้องไม่เกิน 5MB",
+                                                                }),
+                                                            );
+                                                            e.target.value = "";
+                                                            return;
+                                                        }
+
+                                                        // ผ่านทุกเงื่อนไข → ล้าง error และเซ็ตไฟล์
+                                                        setDocErrors(
+                                                            (prev) => ({
+                                                                ...prev,
+                                                                [field.key]:
+                                                                    null,
+                                                            }),
+                                                        );
+                                                        setData("documents", {
+                                                            ...data.documents,
+                                                            [field.key]: file,
+                                                        });
+                                                    }}
+                                                />
+                                            </label>
                                         </div>
+
+                                        {/* ข้อความ error ใต้ field */}
+                                        {docErrors[field.key] && (
+                                            <p className="text-red-500 text-xs ml-1">
+                                                {docErrors[field.key]}
+                                            </p>
+                                        )}
                                     </div>
                                 ))}
                             </div>
