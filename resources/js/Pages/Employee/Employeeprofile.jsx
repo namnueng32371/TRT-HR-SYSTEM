@@ -1,7 +1,6 @@
-import { Link } from "@inertiajs/react";
+import { Link, useForm, usePage } from "@inertiajs/react";
 import TRTLogo from "../../../../public/images/logo.png";
 import { useState } from "react";
-import { useForm } from "@inertiajs/react";
 
 const AvatarDefault = () => (
     <svg
@@ -89,6 +88,7 @@ const Field = ({ label, value }) => (
 );
 
 export default function EmployeeProfile({ employee }) {
+    const { auth } = usePage().props;
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const { post } = useForm();
 
@@ -204,7 +204,7 @@ export default function EmployeeProfile({ employee }) {
                     </div>
                     <div className="flex-1 min-w-0">
                         <div className="text-xs font-semibold text-gray-800 truncate">
-                            Super Admin
+                            {auth?.user?.name || "Super Admin"}
                         </div>
                     </div>
                     <button
@@ -530,14 +530,22 @@ export default function EmployeeProfile({ employee }) {
                         </div>
                     </div>
 
-                    {/* ปุ่มย้อนกลับ */}
-                    <div className="flex justify-end mt-6 pb-8 pr-2 sm:pr-0">
+                    {/* ปุ่มย้อนกลับ & แก้ไข */}
+                    <div className="flex justify-end gap-3 mt-6 pb-8 pr-2 sm:pr-0">
                         <button
                             onClick={() => window.history.back()}
                             className="px-6 py-2.5 rounded-lg text-sm font-medium text-gray-700 border border-gray-300 bg-white hover:bg-gray-50 active:scale-95 transition-all duration-200"
                         >
                             ย้อนกลับ
                         </button>
+                        {/* ปุ่มแก้ไขข้อมูลพนักงาน ชี้ไปยังหน้าแก้ไขของพนักงานคนนั้นๆ */}
+                        <Link
+                            href={route("employee.edit", employee.id)}
+                            className="px-6 py-2.5 rounded-lg text-sm font-medium text-white shadow-sm active:scale-95 transition-all duration-200"
+                            style={{ backgroundColor: "#B3702A" }}
+                        >
+                            แก้ไขข้อมูล
+                        </Link>
                     </div>
                 </main>
             </div>

@@ -120,7 +120,8 @@ class EmployeeController extends Controller
             $extension = $file->getClientOriginalExtension() ?: 'png';
             $filename = uniqid() . '_' . time() . '.' . $extension;
             
-            $path = $file->storeAs('profile_images', $filename, 'public');
+            // บันทึกรูปโปรไฟล์ใหม่ไปที่โฟลเดอร์ employees/profiles เพื่อให้ตรงกับฝั่งตอนสร้างใหม่
+            $path = $file->storeAs('employees/profiles', $filename, 'public');
             $employeeData['profile_image'] = $path;
             
         } else {
@@ -172,7 +173,8 @@ class EmployeeController extends Controller
                 if ($existingDocument && $existingDocument->$field) {
                     Storage::disk('public')->delete($existingDocument->$field);
                 }
-                $documentData[$field] = $request->file("documents.{$field}")->store("documents/{$employee->id}", 'public');
+                // บันทึกไฟล์เอกสารใหม่ไปที่โฟลเดอร์ employees/{id}/documents เพื่อให้ตรงกับฝั่งตอนสร้างใหม่
+                $documentData[$field] = $request->file("documents.{$field}")->store("employees/{$employee->id}/documents", 'public');
             
             // 4.2 🛠️ แก้ไข: เช็คว่าชื่อไฟล์นี้ อยู่ในลิสต์ที่เรากดปุ่มลบจากหน้าบ้านมาหรือไม่
             } elseif (in_array($field, $deletedDocs)) {

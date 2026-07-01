@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, useForm } from "@inertiajs/react";
+import { Link, useForm, usePage } from "@inertiajs/react";
 
 import TRTLogo from "../../../public/images/logo.png";
 // import { Head } from "@inertiajs/react";
@@ -184,6 +184,7 @@ const ActionDropdown = ({ empId, openId, setOpenId, dropUp }) => {
 };
 
 export default function Dashboard({ employees }) {
+    const { auth } = usePage().props;
     const { post } = useForm();
     const [searchCode, setSearchCode] = useState("");
     const [searchName, setSearchName] = useState("");
@@ -330,7 +331,7 @@ export default function Dashboard({ employees }) {
                     </div>
                     <div className="flex-1 min-w-0">
                         <div className="text-sm font-semibold text-gray-800 truncate">
-                            Super Admin
+                            {auth?.user?.name || "Super Admin"}
                         </div>
                     </div>
                     <button

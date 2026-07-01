@@ -1,4 +1,4 @@
-import { Link, useForm } from "@inertiajs/react";
+import { Link, useForm, usePage } from "@inertiajs/react";
 import { useState } from "react";
 import TRTLogo from "../../../../public/images/logo.png";
 import close from "../../../../public/images/icon/close.png";
@@ -154,6 +154,7 @@ const Field = ({
 );
 
 export default function Create() {
+    const { auth } = usePage().props;
     const [localErrors, setLocalErrors] = useState({});
     const [showConfirm, setShowConfirm] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -468,7 +469,7 @@ export default function Create() {
                     </div>
                     <div className="flex-1 min-w-0">
                         <div className="text-sm font-semibold text-gray-800 truncate">
-                            Super Admin
+                            {auth?.user?.name || "Super Admin"}
                         </div>
                     </div>
                     <button

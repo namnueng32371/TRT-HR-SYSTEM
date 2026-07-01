@@ -1,7 +1,6 @@
-import { Link } from "@inertiajs/react";
+import { Link, useForm, usePage } from "@inertiajs/react";
 import TRTLogo from "../../../../public/images/logo.png";
 import { useState } from "react";
-import { useForm } from "@inertiajs/react";
 
 const AvatarDefault = () => (
     <svg
@@ -75,6 +74,7 @@ const documentFields = [
 ];
 
 export default function EmployeeDocument({ employee }) {
+    const { auth } = usePage().props;
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const { post } = useForm();
 
@@ -142,7 +142,7 @@ export default function EmployeeDocument({ employee }) {
                     </div>
                     <div className="flex-1 min-w-0">
                         <div className="text-sm font-semibold text-gray-800 truncate">
-                            Super Admin
+                            {auth?.user?.name || "Super Admin"}
                         </div>
                     </div>
                     <button
